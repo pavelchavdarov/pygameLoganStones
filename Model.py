@@ -6,11 +6,12 @@ class Model:
 
 
     def putStone(self, position, stone):
-        if not(self.__StonesOnBoard[position]):
+        if position not in self.__StonesOnBoard:
             self.__StonesOnBoard[position] = stone
+            #print(self.__StonesOnBoard.keys())
             return 0
         return 1
 
     def getBoard(self):
         board = tuple(self.__StonesOnBoard.items())
-        return tuple
+        return board
