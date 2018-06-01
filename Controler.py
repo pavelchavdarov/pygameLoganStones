@@ -98,10 +98,15 @@ class Controler:
                     buttons = pygame.mouse.get_pressed()
                     pos = self._get_screen_pos(pygame.mouse.get_pos())
                     if buttons[0]:
-                        # if pos["cell_pos"] not in model.getBoard():
+                        # если камня нет, то поставим
+                        # а если камень уже стоит, то выделим его
                         if model.get_stone(pos["cell_pos"]) is None:
                             stone = Stone(self.cell_radius, pos["draw_pos"], self.board_group, ("rock", "papper"))
                             model.put_stone(pos["cell_pos"], stone)
+                        else:
+                            stone = model.get_stone(pos["cell_pos"])
+                            if stone:
+                                stone.mark()
                     elif buttons[2]:
                         stone = model.get_stone(pos["cell_pos"])
                         if stone:

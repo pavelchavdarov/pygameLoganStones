@@ -21,14 +21,29 @@ class Stone (Sprite):
         self.stone_side = self.sides[0]
         self.image_sides = {x: image.load(images[x]) for x in self.sides}
         self.image = None
+        self.is_marked = False
 
     def update(self, *args):
-        self.image = self.image_sides[self.stone_side]
+        self.image = self.image_sides[self.stone_side].copy()
+        self.draw_marker()
 
     def flip(self):
         cur_side = (self.sides.index(self.stone_side) + 1) % 2
         self.stone_side = self.sides[cur_side]
-        # self.drawStone(position)
+
+    def mark(self):
+        self.is_marked = not self.is_marked
+
+    def draw_marker(self):
+        if self.is_marked:
+            pos = (self.Radius / cos(pi / 6), self.Radius)
+            lines = [(cos(i / 6 * pi2) * (self.Radius-3) / cos(pi / 6) + pos[0],
+                      sin(i / 6 * pi2) * (self.Radius-3) / cos(pi / 6) + pos[1])
+                     for i in range(0, 6)]
+            color = (255, 255, 50)
+            # pygame.draw.lines(self.image, color, True, lines)
+            pygame.draw.polygon(self.image, color, lines, 2)
+
 '''
     def drawStone(self, position):
         lines = [(cos(i / 6 * pi2) * self.Radius / cos(pi / 6) + position[0],
@@ -37,3 +52,5 @@ class Stone (Sprite):
         color = (64, 128, 255)
         pygame.draw.lines(self.rect, color, True, lines)
 '''
+
+
