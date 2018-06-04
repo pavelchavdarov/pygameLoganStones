@@ -9,14 +9,15 @@ from math import pi
 from View import images
 
 pi2 = 2 * pi
+
+
 class Stone (Sprite):
 
     def __init__(self, radius, position, group, sides):
         Sprite.__init__(self, group)
         self.Radius = radius
-        #self.Position = position
-        R = radius / cos(pi/6)
-        self.rect = Rect((position[0] - R, position[1] - radius), (R, radius))
+        r = radius / cos(pi/6)
+        self.rect = Rect((position[0] - r, position[1] - radius), (r, radius))
         self.sides = sides
         self.stone_side = self.sides[0]
         self.image_sides = {x: image.load(images[x]) for x in self.sides}
@@ -25,7 +26,7 @@ class Stone (Sprite):
 
     def update(self, *args):
         self.image = self.image_sides[self.stone_side].copy()
-        self.draw_marker()
+        self.__draw_marker()
 
     def flip(self):
         cur_side = (self.sides.index(self.stone_side) + 1) % 2
@@ -34,7 +35,7 @@ class Stone (Sprite):
     def mark(self):
         self.is_marked = not self.is_marked
 
-    def draw_marker(self):
+    def __draw_marker(self):
         if self.is_marked:
             pos = (self.Radius / cos(pi / 6), self.Radius)
             lines = [(cos(i / 6 * pi2) * (self.Radius-3) / cos(pi / 6) + pos[0],
@@ -44,13 +45,11 @@ class Stone (Sprite):
             # pygame.draw.lines(self.image, color, True, lines)
             pygame.draw.polygon(self.image, color, lines, 2)
 
-'''
+    '''
     def drawStone(self, position):
         lines = [(cos(i / 6 * pi2) * self.Radius / cos(pi / 6) + position[0],
                   sin(i / 6 * pi2) * self.Radius / cos(pi / 6) + position[1])
                  for i in range(0, 6)]
         color = (64, 128, 255)
         pygame.draw.lines(self.rect, color, True, lines)
-'''
-
-
+    '''

@@ -66,19 +66,29 @@ class Controler:
         color = (64, 128, 255)
         pygame.draw.lines(self.Screen, color, True, lines)
 
+    def _mark_stone(self, pos):
+        if self.model.marked_stone:
+            # переключили маркер
+            if model.marked_stone != pos["cell_pos"]:
+                model.get_stone(model.marked_stone).mark()
+                model.get_stone(pos["cell_pos"]).mark()
+                model.marked_stone = pos["cell_pos"]
+            # сняли маркер
+            else:
+                model.get_stone(model.marked_stone).mark()
+                model.marked_stone = None
+        # если ничего не выбрано
+        else:
+            stone = model.get_stone(pos["cell_pos"])
+            if stone:
+                stone.mark()
+                model.marked_stone = pos["cell_pos"]
+
+    def _put_stone(self, pos):
+        stone = Stone(self.cell_radius, pos["draw_pos"], self.board_group, ("rock", "papper"))
+        model.put_stone(pos["cell_pos"], stone)
+
     def start(self):
-
-        #self.draw_ngon(self.screen, self.color, 6, self.cell_radius - 1, self.centr)
-        '''        self.draw_ngon(self.screen,
-                       self.color,
-                       6,
-                       self.cell_radius - 1,
-                       (self.centr[0], self.centr[1] + 2 * self.cell_radius)
-                       )
-        '''
-        #self.view.drawStone(self.centr)
-        #self.view.drawStone((self.centr[0], self.centr[1] + 2 * self.cell_radius))
-
         stone = Stone(self.cell_radius, self.centr, self.board_group, ("rock", "papper"))
         model.put_stone((0, 0), stone)
 
@@ -99,21 +109,24 @@ class Controler:
                     pos = self._get_screen_pos(pygame.mouse.get_pos())
                     if buttons[0]:
                         # если камня нет, то поставим
-                        # а если камень уже стоит, то выделим его
                         if model.get_stone(pos["cell_pos"]) is None:
-                            stone = Stone(self.cell_radius, pos["draw_pos"], self.board_group, ("rock", "papper"))
-                            model.put_stone(pos["cell_pos"], stone)
+                            self._put_stone(pos)
+                        # а если камень уже стоит, то выделим его
                         else:
-                            stone = model.get_stone(pos["cell_pos"])
-                            if stone:
-                                stone.mark()
+                            self._mark_stone(pos)
                     elif buttons[2]:
                         stone = model.get_stone(pos["cell_pos"])
                         if stone:
                             stone.flip()
-
                     self.board_group.update()
                     rect_list = self.board_group.draw(self.Screen)
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    buttons = pygame.mouse.get_pressed()
+                    pos = self._get_screen_pos(pygame.mouse.get_pos())
+                    if buttons[0]:
+                        # если камня нет, то поставим
+                        if model.get_stone(pos["cell_pos"]) is None:
+                            pass
 
             pygame.display.update(rect_list)
 

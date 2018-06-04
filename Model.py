@@ -2,6 +2,7 @@
 class Model:
     def __init__(self):
         self.__StonesOnBoard = dict()
+        self.marked_stone = None
         #self.Pouch = []
 
 
@@ -18,6 +19,6 @@ class Model:
         else:
             return None
 
-    def getBoard(self):
-        board = tuple(self.__StonesOnBoard.items())
-        return board
+    def get_board(self):
+        return self.__StonesOnBoard.keys()
+
