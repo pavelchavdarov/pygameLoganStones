@@ -3,7 +3,8 @@ from pygame.sprite import LayeredUpdates
 from math import cos, sin, pi
 
 pi2 = 2 * pi
-images = {"rock": "resources/gem_blue.png", "scissors": "resources/gem_ellow.png", "papper": "resources/gem_green.png"}
+images = {"rock": "resources/gem_blue.png", "scissors": "resources/gem_ellow.png", "papper": "resources/gem_green.png",
+          "background": "resources/background.png"}
 
 class GameView(LayeredUpdates):
 
