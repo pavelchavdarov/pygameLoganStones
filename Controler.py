@@ -1,17 +1,19 @@
 import pygame
 from math import *
 from Model import Model
-from View import images
-
 from Stone import Stone
-from resources import _STONE_SIDES_3
+from resources import _STONE_ENTITY_3
 
 from random import randint
 
 pi2 = 2 * pi
-class Controler:
+
+
+class Controller:
 
     def __init__(self, model=None, view=None):
+        self.entity_list = list(_STONE_ENTITY_3)
+        self.entity_amount = len(self.entity_list)
         self.model = model
         self.view = view
         self.done = False
@@ -42,32 +44,11 @@ class Controler:
         return {"draw_pos": (self.centr[0] + cell_x * cos(pi / 6), self.centr[1] + cell_y - cell_x * sin(pi / 6)),
                 "cell_pos": (hex_x, hex_y)}
 
-
-    def init(self):
-        None
-
     def set_model(self, model):
         self.model = model
 
     def set_view(self, view):
         self.view = view
-
-    '''def draw_ngon(self, Surface, color, n, radius, position):
-        pi2 = 2 * pi
-        return pygame.draw.lines(Surface,
-                                 color,
-                                 True,
-                                 [(cos(i / n * pi2) * radius / cos(pi / 6) + position[0],
-                                   sin(i / n * pi2) * radius / cos(pi / 6) + position[1]) for i in range(0, n)]
-                                 )
-    '''
-
-    def drawStone(self, position):
-        lines = [(cos(i / 6 * pi2) * self.cell_radius / cos(pi / 6) + position[0],
-                  sin(i / 6 * pi2) * self.cell_radius / cos(pi / 6) + position[1])
-                 for i in range(0, 6)]
-        color = (64, 128, 255)
-        pygame.draw.lines(self.Screen, color, True, lines)
 
     def _mark_stone(self, pos):
         if self.model.marked_stone:
@@ -88,31 +69,32 @@ class Controler:
                 model.marked_stone = pos["cell_pos"]
 
     def _put_stone(self, pos):
-        rand_side = randint(0,2)
-        stone = Stone(self.cell_radius, pos["draw_pos"], self.board_group, (_STONE_SIDES_3[rand_side],
-                                                                            _STONE_SIDES_3[(rand_side+randint(1, 2)) % 2]))
+        rand_side_1 = self.entity_list[randint(0, 2)]
+        rand_side_2 = self.entity_list[(randint(0, 2) + 1 - randint(2, 3) % 3) % self.entity_amount]
+        stone = Stone(self.cell_radius, pos["draw_pos"], self.board_group, (rand_side_1, rand_side_2))
         model.put_stone(pos["cell_pos"], stone)
 
     def start(self):
-        rand_side = randint(0, 2)
-        stone = Stone(self.cell_radius, self.centr, self.board_group, (_STONE_SIDES_3[rand_side],
-                                                                       _STONE_SIDES_3[(rand_side+randint(1, 2)) % 2]))
+
+        rand_side_1 = self.entity_list[randint(0, 2)]
+        rand_side_2 = self.entity_list[(randint(0, 2) + 1 - randint(2, 3) % 3) % self.entity_amount]
+        stone = Stone(self.cell_radius, self.centr, self.board_group, (rand_side_1,
+                                                                       rand_side_2))
         model.put_stone((0, 0), stone)
 
         second_pos = (self.centr[0], self.centr[1] + 2 * self.cell_radius)
-        rand_side = randint(0, 2)
-        stone = Stone(self.cell_radius, second_pos, self.board_group, (_STONE_SIDES_3[rand_side],
-                                                                       _STONE_SIDES_3[(rand_side+randint(1, 2)) % 2]))
+        rand_side_1 = self.entity_list[randint(0, 2)]
+        rand_side_2 = self.entity_list[(randint(0, 2) + 1 - randint(2, 3) % 3) % self.entity_amount]
+        stone = Stone(self.cell_radius, second_pos, self.board_group, (rand_side_1,
+                                                                       rand_side_2))
         model.put_stone((0, 1), stone)
-        #self.board_group.update()
-        rect_list = self.board_group.draw(self.Screen)
 
+        rect_list = self.board_group.draw(self.Screen)
         pygame.display.update(rect_list)
 
         drag = False
         drag_pos = None
         while not self.done:
-            last_pos = None
             for event in pygame.event.get():
                 # print("event: {}".format(event))
 
@@ -122,11 +104,16 @@ class Controler:
                     pos = self._get_screen_pos(pygame.mouse.get_pos())
                     if drag:
                         drag = False
+                        self.Screen.fill((0, 0, 0), avatar.get_rect())
+                        self.Screen.fill((0, 0, 0), drag_stone.get_rect())
+
                         # если камня нет, то переместим его
                         if model.get_stone(pos["cell_pos"]) is None:
                             model.move_stone(drag_pos["cell_pos"], pos["cell_pos"])
-                        elif last_pos:
-                            drag_stone.move_to(drag_pos["draw_pos"])
+                            drag_stone.move_to(pos["draw_pos"])
+                        avatar.remove(self.board_group)
+                        self.board_group.update()
+                        rect_list = self.board_group.draw(self.Screen)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     buttons = pygame.mouse.get_pressed()
                     pos = self._get_screen_pos(pygame.mouse.get_pos())
@@ -139,6 +126,8 @@ class Controler:
                             if not drag:
                                 drag_pos = self._get_screen_pos(pygame.mouse.get_pos())
                                 drag = True
+                                drag_stone = model.get_stone(drag_pos["cell_pos"])
+                                avatar = drag_stone.get_avatar()
                     elif buttons[2]:
                         stone = model.get_stone(pos["cell_pos"])
                         if stone:
@@ -148,29 +137,24 @@ class Controler:
                 elif event.type == pygame.MOUSEMOTION:
                     if drag:
                         pos = self._get_screen_pos(pygame.mouse.get_pos())
-                        last_pos = pos.copy()
-                        drag_stone = model.get_stone(drag_pos["cell_pos"])
                         if model.get_stone(pos["cell_pos"]) is None:
-                            old_rect = drag_stone.get_rect()
-                            drag_stone.move_to(pos["draw_pos"])
+                            old_rect = avatar.get_rect()
+
+                            avatar.move_to(pos["draw_pos"])
                             self.Screen.fill((0, 0, 0), old_rect)
-                        # self.board_group.update()
 
-                        rect_list = self.board_group.draw(self.Screen)
+                            rect_list = self.board_group.draw(self.Screen)
 
-            pygame.display.update(rect_list)
+                pygame.display.update(rect_list)
 
         pygame.quit()
         sys.exit()
 
 
-if (__name__ == '__main__'):
-    cntrl = Controler()
+if __name__ == '__main__':
+    cntrl = Controller()
     model = Model()
-    #view = GameView((400, 300), cntrl.cell_radius-1)
 
     cntrl.set_model(model)
-#    cntrl.set_view(view)
 
-    cntrl.init()
     cntrl.start()

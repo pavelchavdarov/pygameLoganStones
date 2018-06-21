@@ -1,13 +1,11 @@
 import pygame
 from pygame.sprite import Sprite
 from pygame import Rect
-from pygame import image
 from math import cos
 from math import sin
 from math import pi
 
-from View import images
-from resources import SideGenerator3
+from resources import GeneratorSingleton
 
 pi2 = 2 * pi
 
@@ -18,20 +16,24 @@ class Stone (Sprite):
         Sprite.__init__(self, group)
         self.Radius = radius-3
         r = self.Radius / cos(pi/6)
-        # self.rect = Rect((round(position[0] - r ), round(position[1] - self.Radius )), (round(r*2), round(self.Radius*2)))
         self.sides = sides
         self.stone_side = self.sides[0]
-        side_gen = SideGenerator3(self.Radius, 0)
-        # self.image_sides = {x: image.load(images[x]) for x in self.sides}
-        self.image_sides = {x: side_gen.get_side_view(x) for x in self.sides}
+        # TODO: избавиться от этого ужаса
+        side_gen = GeneratorSingleton.get_generator(self.Radius)
+        self.image_sides = {x: side_gen.get_entity(x).copy() for x in self.sides}
         self.image = self.image_sides[self.stone_side]
         self.rect = Rect((round(position[0] - r), round(position[1] - self.Radius)),
                          (self.image.get_width(), self.image.get_height()))
         self.is_marked = False
 
+    def get_avatar(self):
+        avatar = Stone(self.Radius+3, (0, 0), self.groups()[0], self.sides)
+        avatar.rect = self.rect.copy()
+        avatar.image.set_alpha(150)
+        return avatar
+
     def update(self, *args):
         self.image = self.image_sides[self.stone_side].copy()
-    #     self.__draw_marker()
 
     def flip(self):
         cur_side = (self.sides.index(self.stone_side) + 1) % 2
@@ -51,17 +53,8 @@ class Stone (Sprite):
 
     def move_to(self, position):
         r = self.Radius / cos(pi / 6)
-        #self.rect = Rect((round(position[0] - r), round(position[1] - self.Radius)), (r*2, self.Radius*2))
         self.rect = Rect((round(position[0] - r), round(position[1] - self.Radius)), (self.image.get_width(), self.image.get_height()))
 
     def get_rect(self):
         return self.rect
 
-    '''
-    def drawStone(self, position):
-        lines = [(cos(i / 6 * pi2) * self.Radius / cos(pi / 6) + position[0],
-                  sin(i / 6 * pi2) * self.Radius / cos(pi / 6) + position[1])
-                 for i in range(0, 6)]
-        color = (64, 128, 255)
-        pygame.draw.lines(self.rect, color, True, lines)
-    '''

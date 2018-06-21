@@ -3,7 +3,6 @@ class Model:
     def __init__(self):
         self.__StonesOnBoard = dict()
         self.marked_stone = None
-        #self.Pouch = []
 
     def put_stone(self, position, stone):
         if position not in self.__StonesOnBoard:
