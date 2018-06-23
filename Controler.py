@@ -1,7 +1,7 @@
 import pygame
 from math import *
 from Model import Model
-from Stone import Stone
+from Stone.Stone import Stone
 from resources import _STONE_ENTITY_3
 
 from random import randint
@@ -76,7 +76,7 @@ class Controller:
 
     def start(self):
 
-        rand_side_1 = self.entity_list[randint(0, 2)]
+        rand_side_1 = self.entity_list[git(0, 2)]
         rand_side_2 = self.entity_list[(randint(0, 2) + 1 - randint(2, 3) % 3) % self.entity_amount]
         stone = Stone(self.cell_radius, self.centr, self.board_group, (rand_side_1,
                                                                        rand_side_2))
