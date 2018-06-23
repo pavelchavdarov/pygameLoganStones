@@ -2,10 +2,13 @@ import pygame
 from math import *
 from Model import Model
 from Stone.Stone import Stone
+from Stone.Stone import StoneAvatar
 from resources import _STONE_ENTITY_3
+
 
 from random import randint
 
+import sys
 pi2 = 2 * pi
 
 
@@ -69,25 +72,20 @@ class Controller:
                 model.marked_stone = pos["cell_pos"]
 
     def _put_stone(self, pos):
-        rand_side_1 = self.entity_list[randint(0, 2)]
-        rand_side_2 = self.entity_list[(randint(0, 2) + 1 - randint(2, 3) % 3) % self.entity_amount]
+        rnd = randint(0, 2)
+        rand_side_1 = self.entity_list[rnd]
+        rand_side_2 = self.entity_list[(rnd + 1 - randint(2, 3) % 3) % self.entity_amount]
         stone = Stone(self.cell_radius, pos["draw_pos"], self.board_group, (rand_side_1, rand_side_2))
         model.put_stone(pos["cell_pos"], stone)
 
     def start(self):
+        pos = {"draw_pos": self.centr}
+        pos.update({"cell_pos": (0, 0)})
+        self._put_stone(pos)
 
-        rand_side_1 = self.entity_list[git(0, 2)]
-        rand_side_2 = self.entity_list[(randint(0, 2) + 1 - randint(2, 3) % 3) % self.entity_amount]
-        stone = Stone(self.cell_radius, self.centr, self.board_group, (rand_side_1,
-                                                                       rand_side_2))
-        model.put_stone((0, 0), stone)
-
-        second_pos = (self.centr[0], self.centr[1] + 2 * self.cell_radius)
-        rand_side_1 = self.entity_list[randint(0, 2)]
-        rand_side_2 = self.entity_list[(randint(0, 2) + 1 - randint(2, 3) % 3) % self.entity_amount]
-        stone = Stone(self.cell_radius, second_pos, self.board_group, (rand_side_1,
-                                                                       rand_side_2))
-        model.put_stone((0, 1), stone)
+        pos["draw_pos"] = (self.centr[0], self.centr[1] + 2 * self.cell_radius)
+        pos["cell_pos"] = (0, 1)
+        self._put_stone(pos)
 
         rect_list = self.board_group.draw(self.Screen)
         pygame.display.update(rect_list)
@@ -127,7 +125,7 @@ class Controller:
                                 drag_pos = self._get_screen_pos(pygame.mouse.get_pos())
                                 drag = True
                                 drag_stone = model.get_stone(drag_pos["cell_pos"])
-                                avatar = drag_stone.get_avatar()
+                                avatar = StoneAvatar(drag_stone)#drag_stone.get_avatar()
                     elif buttons[2]:
                         stone = model.get_stone(pos["cell_pos"])
                         if stone:

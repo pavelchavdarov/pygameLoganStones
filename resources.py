@@ -5,7 +5,7 @@ from math import cos
 from math import pi
 
 _STONE_ENTITY_3 = {"rock":      (194, 159, 117),
-                   "scissors":  (176, 196, 222),
+                   "scissors":  (176, 196, 250),
                    "papper":    (248, 248, 255)
                   }
 pi2 = pi * 2
@@ -16,7 +16,7 @@ class StoneSideViewer:
         raise Exception("Not implemented!")
 
 
-class GeneratorSingleton():
+class GeneratorSingleton:
     __instance = None
 
     class SideGenerator3(StoneSideViewer):
