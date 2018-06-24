@@ -6,39 +6,34 @@ from math import sin
 from math import pi
 
 from resources import GeneratorSingleton
+from Stone.Interface import ITwoSideStone
+
 
 pi2 = 2 * pi
 
 
 class Stone (Sprite):
 
-    def __init__(self, radius=None, position=None, group=None, sides=None):
+    def __init__(self, radius=None, position=None, group=None, stone_model=None):
         Sprite.__init__(self, group)
 
-        if radius and position and group and sides:
+        if radius and position and group and isinstance(stone_model, ITwoSideStone):
             self.radius = radius - 3
             self.radius_ext = self.radius / cos(pi / 6)
-            self.sides = sides
-            self.stone_side = self.sides[0]
+            self.stone_model = stone_model
             side_gen = GeneratorSingleton.get_generator(self.radius)
-            self.image_sides = {x: side_gen.get_entity(x) for x in self.sides}
-            self.image = self.image_sides[self.stone_side]
+            self.image_sides = {x: side_gen.get_entity(x) for x in self.stone_model.sides}
+            self.image = self.image_sides[self.stone_model.get_side()]
             self.rect = Rect((round(position[0] - self.radius_ext), round(position[1] - self.radius)),
                              (self.image.get_width(), self.image.get_height()))
             self.is_marked = False
 
-    def get_avatar(self):
-        avatar = Stone(self.radius + 3, (0, 0), self.groups()[0], self.sides)
-        avatar.rect = self.rect.copy()
-        avatar.image.set_alpha(150)
-        return avatar
-
     def update(self, *args):
-        self.image = self.image_sides[self.stone_side]
+        self.image = self.image_sides[self.stone_model.get_side()]
 
     def flip(self):
-        cur_side = (self.sides.index(self.stone_side) + 1) % 2
-        self.stone_side = self.sides[cur_side]
+        self.stone_model.flip()
+
 
     def mark(self):
         self.is_marked = not self.is_marked

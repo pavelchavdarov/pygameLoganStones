@@ -4,7 +4,7 @@ from Model import Model
 from Stone.Stone import Stone
 from Stone.Stone import StoneAvatar
 from resources import _STONE_ENTITY_3
-
+from Stone.StoneModel import StoneModel
 
 from random import randint
 
@@ -75,7 +75,7 @@ class Controller:
         rnd = randint(0, 2)
         rand_side_1 = self.entity_list[rnd]
         rand_side_2 = self.entity_list[(rnd + 1 - randint(2, 3) % 3) % self.entity_amount]
-        stone = Stone(self.cell_radius, pos["draw_pos"], self.board_group, (rand_side_1, rand_side_2))
+        stone = Stone(self.cell_radius, pos["draw_pos"], self.board_group, StoneModel(rand_side_1, rand_side_2))
         model.put_stone(pos["cell_pos"], stone)
 
     def start(self):
@@ -94,7 +94,6 @@ class Controller:
         drag_pos = None
         while not self.done:
             for event in pygame.event.get():
-                # print("event: {}".format(event))
 
                 if event.type == pygame.constants.QUIT:
                     self.done = True

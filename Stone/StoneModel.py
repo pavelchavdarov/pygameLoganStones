@@ -1,25 +1,31 @@
 from .Interface import ITwoSideStone
 
 
-class StoneFactory:
-    class __StoneModel(ITwoSideStone):
-        def __init__(self):
-            self.sides = []
-            self.stone_side = None
+class StoneModel(ITwoSideStone):
 
-        def set_sides(self, sides):
-            self.sides = list(sides)
-            self.stone_side = self.sides[0]
+    def __init__(self, *sides):
+        self.__sides = list()
+        for side in sides:
+            self.__sides.append(side)
+        self.stone_side = self.__sides[0]
 
-        def get_side(self):
-            return self.stone_side
+    def get_side(self):
+        return self.stone_side
 
-        def flip(self):
-            cur_side = (self.sides.index(self.stone_side) + 1) % 2
-            self.stone_side = self.sides[cur_side]
+    def flip(self):
+        cur_side = (self.__sides.index(self.stone_side) + 1) % 2
+        self.stone_side = self.__sides[cur_side]
 
-    @staticmethod
-    def create_stone(*sides):
-        stone_model = StoneFactory.__StoneModel()
-        stone_model.set_sides(list(sides))
+    def __getattr__(self, item):
+        if item == 'sides':
+            return tuple(self.__sides)
+        else:
+            return item
+
+    def __setattr__(self, key, value):
+        if key == 'sides':
+            self.__sides = list(value)
+        else:
+            super().__setattr__(key, value)
+
 
