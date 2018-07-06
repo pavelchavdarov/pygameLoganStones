@@ -3,12 +3,13 @@ from resources import _STONE_ENTITY_3
 from random import shuffle
 from random import randint
 
+
 class PouchModel:
     __pouch = []
     __stones_amount = 18
 
     def init(self):
-        if len(PouchModel.__pouch) == []:
+        if not PouchModel.__pouch:
             stone_sides = list(_STONE_ENTITY_3)
             for i in range(1, 7):
                 PouchModel.__pouch.append(StoneModel(stone_sides[0], stone_sides[1]))
