@@ -5,6 +5,7 @@ from Stone.Stone import Stone
 from Stone.Stone import StoneAvatar
 from resources import _STONE_ENTITY_3
 from Stone.StoneModel import StoneModel
+from Pouch.PouchModel import PouchModel
 
 from random import randint
 
@@ -15,19 +16,15 @@ pi2 = 2 * pi
 class Controller:
 
     def __init__(self, model=None, view=None):
-        self.entity_list = list(_STONE_ENTITY_3)
-        self.entity_amount = len(self.entity_list)
         self.model = model
         self.view = view
         self.done = False
         self.cell_radius = 30
-        self.centr = (150, 150)
-
-        pygame.init()
+        self.centr = (400, 330)
 
         self.board_group = pygame.sprite.LayeredUpdates()
 
-        self.Screen = pygame.display.set_mode((400, 300))
+        self.Screen = pygame.display.set_mode((800, 720))
 
         pygame.display.set_caption('Logan stones game')
 
@@ -53,6 +50,9 @@ class Controller:
     def set_view(self, view):
         self.view = view
 
+    def set_pouch(self, pouch):
+        self.pouch = pouch
+
     def _mark_stone(self, pos):
         if self.model.marked_stone:
             # переключили маркер
@@ -72,13 +72,13 @@ class Controller:
                 model.marked_stone = pos["cell_pos"]
 
     def _put_stone(self, pos):
-        rnd = randint(0, 2)
-        rand_side_1 = self.entity_list[rnd]
-        rand_side_2 = self.entity_list[(rnd + 1 - randint(2, 3) % 3) % self.entity_amount]
-        stone = Stone(self.cell_radius, pos["draw_pos"], self.board_group, StoneModel(rand_side_1, rand_side_2))
-        model.put_stone(pos["cell_pos"], stone)
+        stone_model = self.pouch.get_stone()
+        if stone_model:
+            model.put_stone(pos["cell_pos"], Stone(self.cell_radius, pos["draw_pos"], self.board_group, stone_model))
 
     def start(self):
+        self.pouch.shake()
+
         pos = {"draw_pos": self.centr}
         pos.update({"cell_pos": (0, 0)})
         self._put_stone(pos)
@@ -153,5 +153,6 @@ if __name__ == '__main__':
     model = Model()
 
     cntrl.set_model(model)
+    cntrl.set_pouch(PouchModel(list(_STONE_ENTITY_3)))
 
     cntrl.start()

@@ -5,7 +5,7 @@ class Model:
         self.marked_stone = None
 
     def put_stone(self, position, stone):
-        if position not in self.__StonesOnBoard:
+        if position not in self.__StonesOnBoard and stone:
             self.__StonesOnBoard[position] = stone
             print("put_stone: ", self.__StonesOnBoard.keys())
             return 0

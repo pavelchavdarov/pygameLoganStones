@@ -5,7 +5,7 @@ from math import cos
 from math import sin
 from math import pi
 
-from resources import GeneratorSingleton
+from resources import StoneViewGenerator
 from Stone.Interface import ITwoSideStone
 
 
@@ -21,8 +21,8 @@ class Stone (Sprite):
             self.radius = radius - 3
             self.radius_ext = self.radius / cos(pi / 6)
             self.stone_model = stone_model
-            side_gen = GeneratorSingleton.get_generator(self.radius)
-            self.image_sides = {x: side_gen.get_entity(x) for x in self.stone_model.sides}
+            stone_view = StoneViewGenerator.get_simple_generator(self.radius)
+            self.image_sides = stone_view.get_views(self.stone_model)
             self.image = self.image_sides[self.stone_model.get_side()]
             self.rect = Rect((round(position[0] - self.radius_ext), round(position[1] - self.radius)),
                              (self.image.get_width(), self.image.get_height()))

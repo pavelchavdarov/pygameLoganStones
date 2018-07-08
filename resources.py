@@ -15,11 +15,14 @@ class StoneSideViewer:
     def get_entity(self, side_name):
         raise Exception("Not implemented!")
 
+    def get_views(self, side_list):
+        pass
 
-class GeneratorSingleton:
+
+class StoneViewGenerator:
     __instance = None
 
-    class SideGenerator3(StoneSideViewer):
+    class Stone3SideViewer(StoneSideViewer):
 
         def __init__(self, radius, attitude=0):
             self.radius = radius
@@ -49,13 +52,16 @@ class GeneratorSingleton:
             else:
                 return None
 
+        def get_views(self, side_list):
+            return {x: self.get_entity(x) for x in side_list.sides}
+
     @staticmethod
-    def get_generator(radius):
-        if not GeneratorSingleton.__instance:
-            GeneratorSingleton.__instance = GeneratorSingleton.SideGenerator3(radius)
+    def get_simple_generator(radius):
+        if not StoneViewGenerator.__instance:
+            StoneViewGenerator.__instance = StoneViewGenerator.Stone3SideViewer(radius)
         else:
-            GeneratorSingleton.__instance.radius = radius
-        return GeneratorSingleton.__instance
+            StoneViewGenerator.__instance.radius = radius
+        return StoneViewGenerator.__instance
 
 
 
