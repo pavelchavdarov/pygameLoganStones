@@ -4,7 +4,6 @@ from Model import Model
 from Stone.Stone import Stone
 from Stone.Stone import StoneAvatar
 from resources import _STONE_ENTITY_3
-from Stone.StoneModel import StoneModel
 from Pouch.PouchModel import PouchModel
 
 from random import randint

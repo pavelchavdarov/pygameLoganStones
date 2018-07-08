@@ -1,5 +1,4 @@
 from Stone.StoneModel import StoneModel
-from resources import _STONE_ENTITY_3
 from random import shuffle
 from random import randint
 
