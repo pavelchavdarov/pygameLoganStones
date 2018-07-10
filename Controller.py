@@ -6,8 +6,6 @@ from Stone.Stone import StoneAvatar
 from resources import _STONE_ENTITY_3
 from Pouch.PouchModel import PouchModel
 
-from random import randint
-
 import sys
 pi2 = 2 * pi
 
@@ -70,6 +68,7 @@ class Controller:
                 stone.mark()
                 model.marked_stone = pos["cell_pos"]
 
+    # depricated
     def _put_stone(self, pos):
         stone_model = self.pouch.get_stone()
         if stone_model:
@@ -123,7 +122,7 @@ class Controller:
                                 drag_pos = self._get_screen_pos(pygame.mouse.get_pos())
                                 drag = True
                                 drag_stone = model.get_stone(drag_pos["cell_pos"])
-                                avatar = StoneAvatar(drag_stone)#drag_stone.get_avatar()
+                                avatar = StoneAvatar(drag_stone)
                     elif buttons[2]:
                         stone = model.get_stone(pos["cell_pos"])
                         if stone:
