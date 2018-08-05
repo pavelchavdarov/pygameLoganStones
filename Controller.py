@@ -3,7 +3,7 @@ from math import *
 from Model import Model
 from Stone.Stone import Stone
 from Stone.Stone import StoneAvatar
-from resources import _STONE_ENTITY_3
+from resources import _STONE_COLOR
 from Pouch.PouchModel import PouchModel
 
 import sys
@@ -12,14 +12,21 @@ pi2 = 2 * pi
 
 class Controller:
 
-    def __init__(self, model=None, view=None):
+    def __init__(self, model=None):
         self.model = model
-        self.view = view
+        self.pouch = None
+
         self.done = False
         self.cell_radius = 30
         self.centr = (400, 330)
+        self.drag = False
+        self.drag_pos = None
+        self.drag_stone = None
+        self.avatar = None
 
-        self.board_group = pygame.sprite.LayeredUpdates()
+        self.board_group = pygame.sprite.RenderUpdates()
+        self.player1_group = pygame.sprite.RenderUpdates()
+        self.player2_group = pygame.sprite.RenderUpdates()
 
         self.Screen = pygame.display.set_mode((800, 720))
 
@@ -44,29 +51,8 @@ class Controller:
     def set_model(self, model):
         self.model = model
 
-    def set_view(self, view):
-        self.view = view
-
     def set_pouch(self, pouch):
         self.pouch = pouch
-
-    def _mark_stone(self, pos):
-        if self.model.marked_stone:
-            # переключили маркер
-            if model.marked_stone != pos["cell_pos"]:
-                model.get_stone(model.marked_stone).mark()
-                model.get_stone(pos["cell_pos"]).mark()
-                model.marked_stone = pos["cell_pos"]
-            # сняли маркер
-            else:
-                model.get_stone(model.marked_stone).mark()
-                model.marked_stone = None
-        # если ничего не выбрано
-        else:
-            stone = model.get_stone(pos["cell_pos"])
-            if stone:
-                stone.mark()
-                model.marked_stone = pos["cell_pos"]
 
     # depricated
     def _put_stone(self, pos):
@@ -74,71 +60,70 @@ class Controller:
         if stone_model:
             model.put_stone(pos["cell_pos"], Stone(self.cell_radius, pos["draw_pos"], self.board_group, stone_model))
 
+    def _move_stone_to_pos(self, stone, pos):
+        self.Screen.fill((0, 0, 0), stone.get_rect())
+        stone.move_to(pos["draw_pos"])
+
+    def _onMouseDown(self):
+        buttons = pygame.mouse.get_pressed()
+        pos = self._get_screen_pos(pygame.mouse.get_pos())
+        if buttons[0]:
+            # если камня нет, то поставим
+            if model.get_stone(pos["cell_pos"]) is None:
+                self._put_stone(pos)
+            else:
+                # иначе начинаем перетаскиваниекамня
+                if not self.drag:
+                    self.drag_pos = self._get_screen_pos(pygame.mouse.get_pos())
+                    self.drag = True
+                    self.avatar = StoneAvatar(model.get_stone(self.drag_pos["cell_pos"]))
+        elif buttons[2]:
+            stone = model.get_stone(pos["cell_pos"])
+            if stone:
+                stone.flip()
+        self.board_group.update()
+        return self.board_group.draw(self.Screen)
+
+    def _onMouseUp(self):
+        pos = self._get_screen_pos(pygame.mouse.get_pos())
+        if self.drag:
+            self.drag = False
+            # если камня нет, то переместим его
+            if self.model.get_stone(pos["cell_pos"]) is None:
+                drag_stone = self.model.get_stone(self.drag_pos["cell_pos"])
+                self._move_stone_to_pos(drag_stone, pos)
+                self.model.move_stone(self.drag_pos["cell_pos"], pos["cell_pos"])
+            # удаляем аватар
+            self.avatar.remove(self.board_group)
+            self.board_group.update()
+            return self.board_group.draw(self.Screen)
+
+    def _on_mouse_move(self):
+        if self.drag:
+            pos = self._get_screen_pos(pygame.mouse.get_pos())
+            if self.model.get_stone(pos["cell_pos"]) is None:
+                self._move_stone_to_pos(self.avatar, pos)
+                return self.board_group.draw(self.Screen)
+            else:
+                self._move_stone_to_pos(self.avatar, self.drag_pos)
+                return self.board_group.draw(self.Screen)
+
     def start(self):
         self.pouch.shake()
 
-        pos = {"draw_pos": self.centr}
-        pos.update({"cell_pos": (0, 0)})
-        self._put_stone(pos)
-
-        pos["draw_pos"] = (self.centr[0], self.centr[1] + 2 * self.cell_radius)
-        pos["cell_pos"] = (0, 1)
-        self._put_stone(pos)
-
-        rect_list = self.board_group.draw(self.Screen)
-        pygame.display.update(rect_list)
-
-        drag = False
-        drag_pos = None
+        rect_list = []
         while not self.done:
             for event in pygame.event.get():
-
+                if rect_list:
+                    rect_list.clear()
                 if event.type == pygame.constants.QUIT:
                     self.done = True
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    pos = self._get_screen_pos(pygame.mouse.get_pos())
-                    if drag:
-                        drag = False
-                        self.Screen.fill((0, 0, 0), avatar.get_rect())
-                        self.Screen.fill((0, 0, 0), drag_stone.get_rect())
-
-                        # если камня нет, то переместим его
-                        if model.get_stone(pos["cell_pos"]) is None:
-                            model.move_stone(drag_pos["cell_pos"], pos["cell_pos"])
-                            drag_stone.move_to(pos["draw_pos"])
-                        avatar.remove(self.board_group)
-                        self.board_group.update()
-                        rect_list = self.board_group.draw(self.Screen)
+                    rect_list = self._onMouseUp()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    buttons = pygame.mouse.get_pressed()
-                    pos = self._get_screen_pos(pygame.mouse.get_pos())
-                    if buttons[0]:
-                        # если камня нет, то поставим
-                        if model.get_stone(pos["cell_pos"]) is None:
-                            self._put_stone(pos)
-                        else:
-                            # иначе начинаем перетаскиваниекамня
-                            if not drag:
-                                drag_pos = self._get_screen_pos(pygame.mouse.get_pos())
-                                drag = True
-                                drag_stone = model.get_stone(drag_pos["cell_pos"])
-                                avatar = StoneAvatar(drag_stone)
-                    elif buttons[2]:
-                        stone = model.get_stone(pos["cell_pos"])
-                        if stone:
-                            stone.flip()
-                    self.board_group.update()
-                    rect_list = self.board_group.draw(self.Screen)
+                    rect_list = self._onMouseDown()
                 elif event.type == pygame.MOUSEMOTION:
-                    if drag:
-                        pos = self._get_screen_pos(pygame.mouse.get_pos())
-                        if model.get_stone(pos["cell_pos"]) is None:
-                            old_rect = avatar.get_rect()
-
-                            avatar.move_to(pos["draw_pos"])
-                            self.Screen.fill((0, 0, 0), old_rect)
-
-                            rect_list = self.board_group.draw(self.Screen)
+                    rect_list = self._on_mouse_move()
 
                 pygame.display.update(rect_list)
 
@@ -151,6 +136,6 @@ if __name__ == '__main__':
     model = Model()
 
     cntrl.set_model(model)
-    cntrl.set_pouch(PouchModel(list(_STONE_ENTITY_3)))
+    cntrl.set_pouch(PouchModel(list(_STONE_COLOR)))
 
     cntrl.start()

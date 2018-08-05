@@ -9,7 +9,7 @@ class PouchModel:
 
     def __init__(self, stone_sides):
         if not PouchModel.__pouch:
-            # stone_sides = list(_STONE_ENTITY_3)
+            # TODO: узнать из правил кол-во камней
             for i in range(1, 3):
                 PouchModel.__pouch.append(StoneModel(stone_sides[0], stone_sides[1]))
                 PouchModel.__pouch.append(StoneModel(stone_sides[1], stone_sides[2]))

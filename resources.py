@@ -4,10 +4,10 @@ from math import sin
 from math import cos
 from math import pi
 
-_STONE_ENTITY_3 = {"rock":      (194, 159, 117),
+_STONE_COLOR = {"rock":      (194, 159, 117),
                    "scissors":  (176, 196, 250),
                    "papper":    (248, 248, 255)
-                  }
+                }
 pi2 = pi * 2
 
 
@@ -41,10 +41,10 @@ class StoneViewGenerator:
                          for i in range(0, 6)]
                 image = Surface((round(2 * self.radius), round(2 * r1)))
 
-            for side in _STONE_ENTITY_3:
+            for side in _STONE_COLOR:
                 self.__sides_dict[side] = image.copy()
                 self.__sides_dict[side].set_colorkey((0, 0, 0))
-                draw.aalines(self.__sides_dict[side], _STONE_ENTITY_3[side], True, lines)
+                draw.aalines(self.__sides_dict[side], _STONE_COLOR[side], True, lines)
 
         def get_entity(self, side_name):
             if side_name in self.__sides_dict:
