@@ -9,13 +9,16 @@ class PouchModel:
 
     def __init__(self, stone_sides):
         if not PouchModel.__pouch:
-            # TODO: узнать из правил кол-во камней
-            for i in range(1, 3):
+            for i in range(0, 3):
                 PouchModel.__pouch.append(StoneModel(stone_sides[0], stone_sides[1]))
                 PouchModel.__pouch.append(StoneModel(stone_sides[1], stone_sides[2]))
                 PouchModel.__pouch.append(StoneModel(stone_sides[2], stone_sides[0]))
 
-    def get_stone(self):
+                PouchModel.__pouch.append(StoneModel(stone_sides[0], stone_sides[2]))
+                PouchModel.__pouch.append(StoneModel(stone_sides[1], stone_sides[0]))
+                PouchModel.__pouch.append(StoneModel(stone_sides[2], stone_sides[1]))
+
+    def __get_stone(self):
         if PouchModel.__pouch:
             return PouchModel.__pouch.pop()
 
@@ -25,3 +28,13 @@ class PouchModel:
             if randint(1, 2) % 2:
                 stone.flip()
 
+    @staticmethod
+    def get_value():
+        return len(PouchModel.__pouch)
+
+    def __getattr__(self, item):
+        if item == 'stones':
+            while len(PouchModel.__pouch):
+                yield PouchModel.__pouch.pop()
+        else:
+            return item
