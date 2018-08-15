@@ -4,31 +4,37 @@ from pygame import Rect
 from math import cos
 from math import sin
 from math import pi
+from pygame.math import Vector2
+from pygame.sprite import Group
 
 from resources import StoneViewGenerator
 from Stone.Interface import ITwoSideStone
 
 
-pi2 = 2 * pi
+# pi2 = 2 * pi
 
 
 class Stone (Sprite):
 
     def __init__(self, radius=None, position=None, group=None, stone_model=None):
-        Sprite.__init__(self, group)
 
-        if radius and position and group and isinstance(stone_model, ITwoSideStone):
-            self.Centr = position
-            self.radius = radius
-            self.Radius = self.radius / cos(pi / 6)
-            self.stone_model = stone_model
+        super().__init__()
+        if not (radius and position and isinstance(group, Group) and stone_model):
+            return
 
-            stone_view = StoneViewGenerator.get_simple_generator(self.radius-1)
-            self.image_sides = stone_view.get_views(self.stone_model)
-            self.image = self.image_sides[self.stone_model.get_side()]
-            self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
-                             (self.image.get_width(), self.image.get_height()))
-            self.is_marked = False
+        self.Center = position
+        group.add(self)
+
+        self.radius = radius
+        self.Radius = self.radius / cos(pi / 6)
+        self.stone_model = stone_model
+
+        stone_view = StoneViewGenerator.get_simple_generator(self.radius-1)
+        self.image_sides = stone_view.get_views(self.stone_model)
+        self.image = self.image_sides[self.stone_model.get_side()]
+        self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
+                         (self.image.get_width(), self.image.get_height()))
+        self.is_marked = False
 
     def update(self, *args):
         self.image = self.image_sides[self.stone_model.get_side()]
@@ -36,6 +42,11 @@ class Stone (Sprite):
     def flip(self):
         self.stone_model.flip()
 
+
+    def is_clicked(self, pos):
+        vec_centr = Vector2(self.Center)
+        vec_pos = Vector2(pos)
+        return round(vec_pos.distance_to(vec_centr)) < self.radius
 
     def mark(self):
         self.is_marked = not self.is_marked
@@ -52,6 +63,7 @@ class Stone (Sprite):
     def move_to(self, position):
         self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
                          (self.image.get_width(), self.image.get_height()))
+        self.Center = position
 
     def get_rect(self):
         return self.rect
@@ -60,13 +72,15 @@ class Stone (Sprite):
 class StoneAvatar(Stone):
 
     def __init__(self, stone):
-        Stone.__init__(self, group=stone.groups()[0])
+        super().__init__()
+        self.Center = stone.Center
+        stone.groups()[0].add(self)
         self.radius = stone.radius
         self.Radius = stone.Radius
         self.image = stone.image.copy()
         self.image.set_alpha(150)
         self.rect = stone.rect.copy()
-        self.add(stone.groups()[0])
+        self.origin_stone = stone
 
     def update(self, *args):
         pass

@@ -4,6 +4,8 @@ from math import sin
 from math import cos
 from math import pi
 
+from Stone.StoneModel import StoneModel
+
 _STONE_COLOR = {"rock":      (194, 159, 117),
                    "scissors":  (176, 196, 250),
                    "papper":    (248, 248, 255)
@@ -53,7 +55,8 @@ class StoneViewGenerator:
                 return None
 
         def get_views(self, side_list):
-            return {x: self.get_entity(x) for x in side_list.sides}
+            if isinstance(side_list, StoneModel):
+                return {x: self.get_entity(x) for x in side_list.sides}
 
     @staticmethod
     def get_simple_generator(radius):

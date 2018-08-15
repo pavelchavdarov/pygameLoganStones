@@ -1,2 +1,6 @@
 import pygame
 
+MOUSE_EVENTS = (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION)
+
+BOARD_EVENT = pygame.USEREVENT + 1
+PLAYER_EVENT = pygame.USEREVENT + 2
