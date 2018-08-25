@@ -2,13 +2,15 @@ import pygame
 from pygame.event import Event
 from math import *
 from Model import Model
-from Stone.Stone import Stone
+from Stone.Stone import StoneBuilder
 from Stone.Stone import StoneAvatar
+from Stone.Stone import StoneMoveProvider
 from resources import _STONE_COLOR
 from Pouch.PouchModel import PouchModel
 from Player.PlayerModel import PlayerDispatcher
 from Events.event_dict import MOUSE_EVENTS
 from Groups.BoardGroup import BoardGroup
+
 
 import sys
 pi2 = 2 * pi
@@ -33,6 +35,9 @@ class Controller:
         self.board = BoardGroup(pygame.Rect(150, 0, 500, 720), self.cell_radius)  # pygame.sprite.RenderUpdates()
         self.centr = self.board.area.center
         self.players = PlayerDispatcher(pygame.Rect(0, 0, 150, 720), pygame.Rect(650, 0, 150, 720))
+
+        self.stone_builder = StoneBuilder()
+        self.stone_builder.set_move_provider(StoneMoveProvider()).set_radius(self.cell_radius)
 
     def _calc_pos(self, mouse_pos):
         # расстояние до точки клика по hex-осям X и Y
@@ -60,7 +65,8 @@ class Controller:
         # stone_model = self.pouch.get_stone()
         if stone_model:
             # model.put_stone(pos["cell_pos"], Stone(self.cell_radius, pos["draw_pos"], group, stone_model))
-            Stone(self.cell_radius, pos["draw_pos"], group, stone_model)
+            self.stone_builder.set_position(pos["draw_pos"]).set_group(group).set_stone_model(stone_model).build()
+            #Stone(self.cell_radius, pos["draw_pos"], group, stone_model)
 
     def _move_stone_to_pos(self, stone, pos):
         self.Screen.fill((0, 0, 0), stone.get_rect())

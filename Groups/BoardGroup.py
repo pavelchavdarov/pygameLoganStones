@@ -45,15 +45,15 @@ class BoardGroup(RenderUpdates):
     def _onMouseDown(self, mouse_pos):
         buttons = pygame.mouse.get_pressed()
         pos = self._calc_pos(mouse_pos)
+        stone = self.model.get_stone(pos["cell_pos"])
         if buttons[0]:
-            if self.model.get_stone(pos["cell_pos"]):
+            if stone:
                 # начинаем перетаскиваниекамня
                 if not self.drag:
                     self.drag_pos = pos # self._calc_pos(pygame.mouse.get_pos())
                     self.drag = True
                     self.avatar = StoneAvatar(self.model.get_stone(self.drag_pos["cell_pos"]))
         elif buttons[2]:
-            stone = self.model.get_stone(pos["cell_pos"])
             if stone:
                 stone.flip()
         self.update()
