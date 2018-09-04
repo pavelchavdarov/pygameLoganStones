@@ -57,8 +57,6 @@ class Stone(Sprite):
                  stone_model: StoneModel =None, move_provider: MoveProvider =None):
 
         super().__init__()
-        if not (radius and position and isinstance(group, Group) and stone_model):
-            return
 
         self.Center = position
         group.add(self)
@@ -74,8 +72,6 @@ class Stone(Sprite):
                          (self.image.get_width(), self.image.get_height()))
         self.move_provider = move_provider
 
-
-
     def update(self, *args):
         self.image = self.image_sides[self.stone_model.get_side()]
 
@@ -87,49 +83,10 @@ class Stone(Sprite):
         vec_pos = Vector2(pos)
         return round(vec_pos.distance_to(vec_centr)) < self.radius
 
-    #def mark(self):
-    #    self.is_marked = not self.is_marked
-
-    # def __draw_marker(self):
-    #    if self.is_marked:
-    #        pos = (self.radius / cos(pi / 6), self.radius)
-    #        lines = [(cos(i / 6 * pi2) * self.radius / cos(pi / 6) + pos[0],
-    #                  sin(i / 6 * pi2) * self.radius / cos(pi / 6) + pos[1])
-    #                for i in range(0, 6)]
-    #        color = (255, 255, 50)
-    #       pygame.draw.polygon(self.image, color, lines, 2)
-
     def move_to(self, position):
         if self.move_provider:
             self.move_provider.move_to(self, position)
-
-        #self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
-        #                 (self.image.get_width(), self.image.get_height()))
-        #self.Center = position
 
     def get_rect(self):
         return self.rect
 
-    #def create_avatar(self):
-    #    avatar = deepcopy(self)
-    #    avatar.image.set_alpha(150)
-    #    avatar.origin_stone = self
-
-
-class StoneAvatar(Sprite):
-
-    def __init__(self, stone, move_provider):
-        super().__init__()
-        self.Center = stone.Center
-        stone.groups()[0].add(self)
-        self.radius = stone.radius
-        self.Radius = stone.Radius
-        self.image = stone.image.copy()
-        self.image.set_alpha(150)
-        self.rect = stone.rect.copy()
-        self.origin_stone = stone
-        self.move_provider = move_provider
-
-    def move_to(self, position):
-        if self.move_provider:
-            self.move_provider.move_to(self, position)

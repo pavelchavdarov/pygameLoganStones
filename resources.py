@@ -46,7 +46,7 @@ class StoneViewGenerator:
             for side in _STONE_COLOR:
                 self.__sides_dict[side] = image.copy()
                 self.__sides_dict[side].set_colorkey((0, 0, 0))
-                draw.aalines(self.__sides_dict[side], _STONE_COLOR[side], True, lines)
+                draw.lines(self.__sides_dict[side], _STONE_COLOR[side], True, lines)
 
         def get_entity(self, side_name):
             if side_name in self.__sides_dict:

@@ -3,7 +3,8 @@ from pygame.sprite import RenderUpdates
 from pygame import Rect
 from math import cos, sin, pi
 from Model import Model
-from Stone.Stone import StoneAvatar
+
+from Events.event_dict import CHANGE_TURN_EVENT
 
 cos_pi_6 = cos(pi / 6)
 sin_pi_6 = sin(pi / 6)
@@ -18,9 +19,9 @@ class BoardGroup(RenderUpdates):
         self.cell_radius = cell_radius
         self.model = Model()
         self.Screen = pygame.display.get_surface()
-        self.drag = False  # признак собятия перетаскивания (Drag-and-Drop)
+        self.drag = False  # признак события перетаскивания (Drag-and-Drop)
         self.drag_pos = None  # позиция начала перетаскивания
-        self.avatar = None
+        self.drag_stone = None
 
     def _calc_pos(self, mouse_pos):
         # расстояние до точки клика по hex-осям X и Y
@@ -42,7 +43,7 @@ class BoardGroup(RenderUpdates):
         self.Screen.fill((0, 0, 0), stone.rect)
         stone.move_to(pos["draw_pos"])
 
-    def _onMouseDown(self, mouse_pos):
+    def _on_mouse_down(self, mouse_pos):
         buttons = pygame.mouse.get_pressed()
         pos = self._calc_pos(mouse_pos)
         stone = self.model.get_stone(pos["cell_pos"])
@@ -52,36 +53,36 @@ class BoardGroup(RenderUpdates):
                 if not self.drag:
                     self.drag_pos = pos # self._calc_pos(pygame.mouse.get_pos())
                     self.drag = True
-                    self.avatar = StoneAvatar(self.model.get_stone(self.drag_pos["cell_pos"]))
+                    self.drag_stone = stone
         elif buttons[2]:
             if stone:
                 stone.flip()
         self.update()
         return self.draw(self.Screen)
 
-    def _onMouseUp(self, mouse_pos):
+    def _on_mouse_up(self, mouse_pos):
         pos = self._calc_pos(mouse_pos)
         if self.drag:
             self.drag = False
             # если камня нет, то переместим его
             if self.model.get_stone(pos["cell_pos"]) is None:
-                drag_stone = self.avatar.origin_stone
-                self._move_stone_to_pos(drag_stone, pos)
                 self.model.move_stone(self.drag_pos["cell_pos"], pos["cell_pos"])
-            # удаляем аватар
-            self.avatar.kill()
             self.update()
+            event = pygame.event.Event(CHANGE_TURN_EVENT)
+            pygame.event.post(event)
             return self.draw(self.Screen)
 
     def _on_mouse_move(self, mouse_pos):
         if self.drag:
             pos = self._calc_pos(mouse_pos)
-            if self.model.get_stone(pos["cell_pos"]) is None:
-                self._move_stone_to_pos(self.avatar, pos)
+            stone = self.model.get_stone(pos["cell_pos"])
+            if stone is None or stone == self.drag_stone:
+                self._move_stone_to_pos(self.drag_stone, pos)
                 return self.draw(self.Screen)
             else:
-                self._move_stone_to_pos(self.avatar, self.drag_pos)
-                return self.draw(self.Screen)
+                pass
+                #self._move_stone_to_pos(self.avatar, self.drag_pos)
+                #return self.draw(self.Screen)
 
     def is_clicked(self, pos):
         return self.area.collidepoint(pos[0], pos[1])
@@ -93,30 +94,27 @@ class BoardGroup(RenderUpdates):
     def add(self, *sprites):
         super().add(*sprites)
         for spr in sprites:
-            if not isinstance(spr, StoneAvatar):
-                pos = self._calc_pos(spr.Center)
-                self.model.put_stone(pos["cell_pos"], spr)
+            pos = self._calc_pos(spr.Center)
+            self.model.put_stone(pos["cell_pos"], spr)
 
     def add_internal(self, sprite):
         super().add_internal(sprite)
-        if not isinstance(sprite, StoneAvatar):
-            pos = self._calc_pos(sprite.Center)
-            self.model.put_stone(pos["cell_pos"], sprite)
+        pos = self._calc_pos(sprite.Center)
+        self.model.put_stone(pos["cell_pos"], sprite)
 
     def remove_internal(self, sprite):
         super().remove_internal(sprite)
-        if not isinstance(sprite, StoneAvatar):
-            pos = self._calc_pos(sprite.Center)
-            self.model.remove_stone(pos["cell_pos"])
+        pos = self._calc_pos(sprite.Center)
+        self.model.remove_stone(pos["cell_pos"])
 
     def process_event(self, event):
         # print('BoardGroup: ' + str(event.type))
         rect_list = []
         if event.type == pygame.MOUSEBUTTONUP:
-            rect_list = self._onMouseUp(event.pos)
+            rect_list = self._on_mouse_up(event.pos)
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            rect_list = self._onMouseDown(event.pos)
+            rect_list = self._on_mouse_down(event.pos)
 
         elif event.type == pygame.MOUSEMOTION:
             rect_list = self._on_mouse_move(event.pos)
