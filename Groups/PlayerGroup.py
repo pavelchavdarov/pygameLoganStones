@@ -1,7 +1,7 @@
 from pygame.sprite import RenderUpdates, LayeredUpdates
 from pygame import Rect
 import pygame
-
+from pygame.math import Vector2
 from math import cos, sin, pi
 
 
@@ -10,6 +10,11 @@ class PlayerGroup(RenderUpdates):
     def __init__(self, area: Rect):
         super().__init__()
         self.area = area
+        self.center = area.center
+        self.Screen = pygame.display.get_surface()
+        self.drag = False  # признак события перетаскивания (Drag-and-Drop)
+        self.drag_pos = None  # позиция начала перетаскивания
+        self.drag_stone = None
 
     def collide_pos(self, pos):
         clicked_sprites = list(filter(lambda sprite: sprite.is_clicked(pos), self.sprites()))
@@ -19,6 +24,7 @@ class PlayerGroup(RenderUpdates):
         return self.area.collidepoint(pos[0], pos[1])
 
     def process_event(self, event):
+        print('{}: process_event'.format(self.__class__.__name__))
         rect_list = []
         if event.type == pygame.MOUSEBUTTONUP:
             rect_list = self._on_mouse_up(event.pos)
@@ -27,18 +33,37 @@ class PlayerGroup(RenderUpdates):
             rect_list = self._on_mouse_down(event.pos)
 
         elif event.type == pygame.MOUSEMOTION:
-            rect_list = self._on_mouse_move(event.pos)
+            rect_list = self._on_mouse_move(event.rel)
 
         pygame.display.update(rect_list)
+
+    def _move_stone_to_pos(self, stone, pos):
+        self.Screen.fill((0, 0, 0), stone.rect)
+        stone.move_to(pos)
 
     def _on_mouse_down(self, mouse_pos):
         buttons = pygame.mouse.get_pressed()
         stone = self.collide_pos(mouse_pos)
         if stone:
-            print("x={}, y={}, stone={}".format(stone.Center[0], stone.Center[1], stone))
+            if buttons[0]:
+                if stone:
+                    # начинаем перетаскиваниекамня
+                    if not self.drag:
+                        self.drag_pos = stone.Center  # self._calc_pos(pygame.mouse.get_pos())
+                        self.drag = True
+                        self.drag_stone = stone
+            elif buttons[2]:
+                if stone:
+                    stone.flip()
+        self.update()
+        return self.draw(self.Screen)
 
-    def _on_mouse_move(self, mouse_pos):
-        pass
+    def _on_mouse_move(self, rel_pos):
+        if self.drag:
+            pos = Vector2(self.drag_stone.Center) + Vector2(rel_pos)
+            self._move_stone_to_pos(self.drag_stone, (pos.x,pos.y))
+            return self.draw(self.Screen)
 
     def _on_mouse_up(self, mouse_pos):
-        pass
+        if self.drag:
+            self.drag = False

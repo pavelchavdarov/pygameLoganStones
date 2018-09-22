@@ -7,7 +7,8 @@ class StoneModel:
             self.__sides.append(side)
         self.stone_side = self.__sides[0]
 
-    def get_side(self):
+    @property
+    def side(self):
         return self.stone_side
 
     def flip(self):

@@ -67,13 +67,13 @@ class Stone(Sprite):
 
         stone_view = StoneViewGenerator.get_simple_generator(self.radius-1)
         self.image_sides = stone_view.get_views(self.stone_model)
-        self.image = self.image_sides[self.stone_model.get_side()]
+        self.image = self.image_sides[self.stone_model.side]
         self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
                          (self.image.get_width(), self.image.get_height()))
         self.move_provider = move_provider
 
     def update(self, *args):
-        self.image = self.image_sides[self.stone_model.get_side()]
+        self.image = self.image_sides[self.stone_model.side]
 
     def flip(self):
         self.stone_model.flip()

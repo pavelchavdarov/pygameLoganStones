@@ -86,7 +86,7 @@ class Controller:
             if self.pouch.get_value() > 1:
                 current_player = self.players.current_player
                 self._put_stone({"draw_pos":(x[i], y)}, stone, current_player.batch)
-                print("x={} y={} stone = {}".format(x[i], y, stone))
+                # print("x={} y={} stone = {}".format(x[i], y, stone))
                 if i:
                     y += 60
                 i = (i+1) % 2
