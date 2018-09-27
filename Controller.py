@@ -10,7 +10,7 @@ from Player.PlayerModel import PlayerDispatcher
 from Events.event_dict import MOUSE_EVENTS
 from Events.event_dict import CHANGE_TURN_EVENT
 from Groups.BoardGroup import BoardGroup
-
+from Settings import *
 
 import sys
 pi2 = 2 * pi
@@ -23,32 +23,33 @@ class Controller:
         self.pouch = None
 
         self.done = False
-        self.cell_radius = 30
+        self.cell_radius = CELL_RADIUS
         self.drag = False
         self.drag_pos = None
         self.drag_stone = None
         self.avatar = None
 
-        self.Screen = pygame.display.set_mode((800, 720))
+        self.Screen = pygame.display.set_mode(WINDOW_SIZE)
         pygame.display.set_caption('Logan stones game')
 
-        self.board = BoardGroup(pygame.Rect(150, 0, 500, 720), self.cell_radius)  # pygame.sprite.RenderUpdates()
+
+        self.board = BoardGroup(pygame.Rect(PLAYER_SIZE[0], 0, BOARD_SIZE[0], BOARD_SIZE[1]), CELL_RADIUS)  # pygame.sprite.RenderUpdates()
         self.centr = self.board.area.center
-        self.players = PlayerDispatcher(pygame.Rect(0, 0, 150, 720), pygame.Rect(650, 0, 150, 720))
+        self.players = PlayerDispatcher(pygame.Rect(0, 0, PLAYER_SIZE[0], PLAYER_SIZE[1]), pygame.Rect(PLAYER_SIZE[0]+BOARD_SIZE[0], 0, PLAYER_SIZE[0], PLAYER_SIZE[1]))
 
         self.stone_builder = StoneBuilder()
-        self.stone_builder.set_move_provider(StoneMoveProvider()).set_radius(self.cell_radius)
+        self.stone_builder.set_move_provider(StoneMoveProvider()).set_radius(CELL_RADIUS)
 
     def _calc_pos(self, mouse_pos):
         # расстояние до точки клика по hex-осям X и Y
         delta_x = (mouse_pos[0] - self.centr[0]) / cos(pi / 6)
         delta_y = (mouse_pos[1] - self.centr[1]) + delta_x * sin(pi / 6)
         # расстояние в клетках по X и Y
-        hex_x = round(delta_x / (2 * self.cell_radius))
-        hex_y = round(delta_y / (2 * self.cell_radius))
+        hex_x = round(delta_x / (2 * CELL_RADIUS))
+        hex_y = round(delta_y / (2 * CELL_RADIUS))
         # расстояние до центра клетки, в которую попал клик
-        cell_x = hex_x * 2 * self.cell_radius
-        cell_y = hex_y * 2 * self.cell_radius
+        cell_x = hex_x * 2 * CELL_RADIUS
+        cell_y = hex_y * 2 * CELL_RADIUS
 
         # координвты для отрисовки в обычных координатах
         return {"draw_pos": (self.centr[0] + cell_x * cos(pi / 6), self.centr[1] + cell_y - cell_x * sin(pi / 6)),
@@ -75,8 +76,8 @@ class Controller:
     def start(self):
         self.pouch.shake()
         # раздача фишек
-        x = [40, 760]
-        y = 60
+        x = [CELL_RADIUS*1.5, WINDOW_SIZE[0]-CELL_RADIUS*1.5]
+        y = 2.5*CELL_RADIUS
         i = 0
 
         rect_list = []
@@ -88,14 +89,14 @@ class Controller:
                 self._put_stone({"draw_pos":(x[i], y)}, stone, current_player.batch)
                 # print("x={} y={} stone = {}".format(x[i], y, stone))
                 if i:
-                    y += 60
+                    y += 100
                 i = (i+1) % 2
                 rect_list.extend(current_player.batch.draw(self.Screen))
                 self.players.pass_turn()
             else:
                 game_board = self.board
                 self._put_stone(self._calc_pos((self.centr[0], self.centr[1] +
-                                                self.pouch.get_value()*2*self.cell_radius)), stone, game_board)
+                                                self.pouch.get_value()*2*CELL_RADIUS)), stone, game_board)
                 rect_list.extend(game_board.draw(self.Screen))
         pygame.display.update(rect_list)
 

@@ -1,14 +1,18 @@
 from pygame import Surface
 from pygame import draw
+from pygame import image as image_loader
 from math import sin
 from math import cos
 from math import pi
 
+
+import os
+
 from Stone.StoneModel import StoneModel
 
-_STONE_COLOR = {"rock":      (194, 159, 117),
-                   "scissors":  (176, 196, 250),
-                   "papper":    (248, 248, 255)
+_STONE_COLOR = {"rock":      'hexagon-red.png', #(194, 159, 117),
+                   "scissors":  'hexagon-blue.png',#(22, 46, 175),
+                   "papper":    'hexagon-green.png'#(255, 142, 0)
                 }
 pi2 = pi * 2
 
@@ -46,13 +50,12 @@ class StoneViewGenerator:
             for side in _STONE_COLOR:
                 self.__sides_dict[side] = image.copy()
                 self.__sides_dict[side].set_colorkey((0, 0, 0))
-                draw.lines(self.__sides_dict[side], _STONE_COLOR[side], True, lines)
+                # draw.aalines(self.__sides_dict[side], _STONE_COLOR[side], True, lines)
+                # draw.polygon(self.__sides_dict[side], _STONE_COLOR[side], lines)
+                self.__sides_dict[side].blit(image_loader.load(os.path.join('resources', _STONE_COLOR[side])), [0,0])
 
         def get_entity(self, side_name):
-            if side_name in self.__sides_dict:
-                return self.__sides_dict[side_name]
-            else:
-                return None
+            return self.__sides_dict.get(side_name, None)
 
         def get_views(self, side_list):
             if isinstance(side_list, StoneModel):

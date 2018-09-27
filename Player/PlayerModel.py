@@ -3,8 +3,8 @@ from Groups.PlayerGroup import PlayerGroup
 
 
 class Player:
-    def __init__(self, area: Rect):
-        self.__stone_group = PlayerGroup(area)
+    def __init__(self, area: Rect, index: int):
+        self.__stone_group = PlayerGroup(area, index)
     @property
     def batch(self):
         return self.__stone_group
@@ -12,7 +12,7 @@ class Player:
 
 class PlayerDispatcher:
     def __init__(self, player1_area, player2_area):
-        self.__players = [Player(player1_area), Player(player2_area)]
+        self.__players = [Player(player1_area,0), Player(player2_area,1)]
         self.__current = 0
 
     @property

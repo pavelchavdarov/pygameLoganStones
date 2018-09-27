@@ -108,7 +108,7 @@ class BoardGroup(RenderUpdates):
         self.model.remove_stone(pos["cell_pos"])
 
     def process_event(self, event):
-        print('{}: process_event'.format(self.__class__.__name__))
+
         rect_list = []
         if event.type == pygame.MOUSEBUTTONUP:
             rect_list = self._on_mouse_up(event.pos)
