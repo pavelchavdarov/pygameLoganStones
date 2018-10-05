@@ -11,8 +11,9 @@ import os
 from Stone.StoneModel import StoneModel
 
 _STONE_COLOR = {"rock":      'hexagon-red.png', #(194, 159, 117),
-                   "scissors":  'hexagon-blue.png',#(22, 46, 175),
-                   "papper":    'hexagon-green.png'#(255, 142, 0)
+                "scissors":  'hexagon-blue.png',#(22, 46, 175),
+                "papper":    'hexagon-green.png',#(255, 142, 0)
+                "avatar":    'hexagon-grey.png'
                 }
 pi2 = pi * 2
 

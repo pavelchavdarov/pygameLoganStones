@@ -1,5 +1,6 @@
+from _collections import defaultdict
+
 import pygame
-from pygame.event import Event
 from math import *
 from Model import Model
 from Stone.Stone import StoneBuilder
@@ -9,6 +10,9 @@ from Pouch.PouchModel import PouchModel
 from Player.PlayerModel import PlayerDispatcher
 from Events.event_dict import MOUSE_EVENTS
 from Events.event_dict import CHANGE_TURN_EVENT
+from Events.event_dict import STONE_SELECTED_EVENT
+from Events.event_dict import FOCUS_OFF_EVENT
+from Events.utils import post_event
 from Groups.BoardGroup import BoardGroup
 from Settings import *
 
@@ -35,10 +39,10 @@ class Controller:
 
         self.board = BoardGroup(pygame.Rect(PLAYER_SIZE[0], 0, BOARD_SIZE[0], BOARD_SIZE[1]), CELL_RADIUS)  # pygame.sprite.RenderUpdates()
         self.centr = self.board.area.center
-        self.players = PlayerDispatcher(pygame.Rect(0, 0, PLAYER_SIZE[0], PLAYER_SIZE[1]), pygame.Rect(PLAYER_SIZE[0]+BOARD_SIZE[0], 0, PLAYER_SIZE[0], PLAYER_SIZE[1]))
+        self.turn_dispatcher = PlayerDispatcher(pygame.Rect(0, 0, PLAYER_SIZE[0], PLAYER_SIZE[1]), pygame.Rect(PLAYER_SIZE[0] + BOARD_SIZE[0], 0, PLAYER_SIZE[0], PLAYER_SIZE[1]))
 
         self.stone_builder = StoneBuilder()
-        self.stone_builder.set_move_provider(StoneMoveProvider()).set_radius(CELL_RADIUS)
+        self.stone_builder.set_move_provider(StoneMoveProvider())
 
     def _calc_pos(self, mouse_pos):
         # расстояние до точки клика по hex-осям X и Y
@@ -85,14 +89,14 @@ class Controller:
         for stone in self.pouch.stones:
             self.pouch.shake()
             if self.pouch.get_value() > 1:
-                current_player = self.players.current_player
+                current_player = self.turn_dispatcher.current_player
                 self._put_stone({"draw_pos":(x[i], y)}, stone, current_player.batch)
                 # print("x={} y={} stone = {}".format(x[i], y, stone))
                 if i:
                     y += 100
                 i = (i+1) % 2
                 rect_list.extend(current_player.batch.draw(self.Screen))
-                self.players.pass_turn()
+                self.turn_dispatcher.pass_turn()
             else:
                 game_board = self.board
                 self._put_stone(self._calc_pos((self.centr[0], self.centr[1] +
@@ -100,8 +104,7 @@ class Controller:
                 rect_list.extend(game_board.draw(self.Screen))
         pygame.display.update(rect_list)
 
-
-
+        focus_dict = defaultdict(lambda: False)
         while not self.done:
             for event in pygame.event.get():
                 if rect_list:
@@ -109,12 +112,25 @@ class Controller:
                 if event.type == pygame.QUIT:
                     self.done = True
                 elif event.type in MOUSE_EVENTS:
-                    if self.board.is_clicked(event.pos):
+                    if self.board.is_over(event.pos):
+                        if focus_dict[self.turn_dispatcher.current_player]:
+                            post_event(FOCUS_OFF_EVENT, {"recipient": self.turn_dispatcher.current_player})
+                        focus_dict.update({self.board: True, self.turn_dispatcher.current_player: False})
                         self.board.process_event(event)
-                    elif self.players.current_player.batch.is_clicked(event.pos):
-                        self.players.current_player.batch.process_event(event)
+                    # elif self.turn_dispatcher.current_player.is_over(event.pos):
+                    else:
+                        if focus_dict[self.board]:
+                            post_event(FOCUS_OFF_EVENT, {"recipient": self.board})
+                        focus_dict.update({self.board: False, self.turn_dispatcher.current_player: True})
+                        self.turn_dispatcher.current_player.process_event(event)
                 elif event.type == CHANGE_TURN_EVENT:
-                    self.players.pass_turn()
+                    self.turn_dispatcher.current_player.process_event(event)
+                    self.turn_dispatcher.pass_turn()
+                elif event.type == STONE_SELECTED_EVENT:
+                    self.board.process_event(event)
+                elif event.type == FOCUS_OFF_EVENT:
+                    event.recipient.process_event(event)
+
                 #elif event.type == pygame.MOUSEBUTTONUP:
                 #    rect_list = self._on_mouse_up(event.pos)
                 #elif event.type == pygame.MOUSEBUTTONDOWN:

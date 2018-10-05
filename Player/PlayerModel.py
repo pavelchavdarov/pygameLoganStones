@@ -9,6 +9,12 @@ class Player:
     def batch(self):
         return self.__stone_group
 
+    def is_over(self, pos):
+        return self.__stone_group.is_clicked(pos)
+
+    def process_event(self, event):
+        return self.__stone_group.process_event(event)
+
 
 class PlayerDispatcher:
     def __init__(self, player1_area, player2_area):
