@@ -9,32 +9,35 @@ from Model import Model
 
 from Events.event_dict import CHANGE_TURN_EVENT
 from Events.event_dict import STONE_SELECTED_EVENT
-from Events.event_dict import FOCUS_OFF_EVENT
+from Events.event_dict import FOCUS_OFF_EVENT, FOCUS_ON_EVENT
 from Events.utils import post_event
 
-from Stone.Stone import Stone, Avatar, StoneMoveProvider
-from resources import _STONE_COLOR
+from Stone.Stone import Stone, Avatar
+from resources import _STONE_AVATAR
+from Settings import CELL_RADIUS
+from Groups.GameArea import GameArea
+
 from pygame import image as image_loader
 
 cos_pi_6 = cos(pi / 6)
 sin_pi_6 = sin(pi / 6)
 
 
-class BoardGroup(RenderUpdates):
+class GameBoard(GameArea):
 
-    def __init__(self, area: Rect, cell_radius):
-        super().__init__()
+    def __init__(self, area: Rect):
+        super().__init__(area)
         self.area = area
         self.center = area.center
-        self.cell_radius = cell_radius
+        self.cell_radius = CELL_RADIUS
         self.model = Model()
         self.Screen = pygame.display.get_surface()
         self.drag = False  # признак события перетаскивания (Drag-and-Drop)
         self.drag_pos = None  # позиция начала перетаскивания
         self.drag_stone = None
         self.rect_list = []
-        image = image_loader.load(os.path.join('resources', _STONE_COLOR['avatar']))
-        self.avatar_sprite = Avatar().set_image(image).set_rect(pos=(0,0)).set_move_provider(StoneMoveProvider())
+        image = image_loader.load(os.path.join('resources', _STONE_AVATAR))
+        self.avatar_sprite = Avatar().set_image(image).set_rect(pos=(0, 0))
         self.stone_selected = False
 
         self.event_processor = defaultdict(lambda: lambda event: print("Unsupported event {}".format(event)))
@@ -43,7 +46,8 @@ class BoardGroup(RenderUpdates):
             pygame.MOUSEBUTTONDOWN: lambda event: self._on_mouse_down(event.pos),
             pygame.MOUSEMOTION: lambda event: self._on_mouse_move(event.pos),
             STONE_SELECTED_EVENT: lambda event: self._on_avatar_change(event.selected),
-            FOCUS_OFF_EVENT: lambda event: self._on_focus_off()
+            FOCUS_OFF_EVENT: lambda event: self._on_focus_off(),
+            FOCUS_ON_EVENT: lambda event: self._on_focus_on()
         })
 
     def _calc_pos(self, mouse_pos):
@@ -114,13 +118,17 @@ class BoardGroup(RenderUpdates):
                     self.update()
                     self.rect_list = self.draw(self.Screen)
 
-
-
     def _on_focus_off(self):
         if self.avatar_sprite.groups():
             self.avatar_sprite.remove(self)
+        self._hide_border()
+        self.update()
         self.rect_list = self.draw(self.Screen)
 
+    def _on_focus_on(self):
+        self._show_border()
+        self.update()
+        self.rect_list = self.draw(self.Screen)
 
     def _on_avatar_change(self, selected):
         self.stone_selected = selected
@@ -133,7 +141,6 @@ class BoardGroup(RenderUpdates):
         #     self.avatar_sprite.remove(self)
         # self.Screen.fill((0, 0, 0), self.avatar_sprite.rect)
         # self.rect_list = self.draw(self.Screen)
-
 
     def is_over(self, pos):
         return self.area.collidepoint(pos[0], pos[1])
@@ -157,14 +164,12 @@ class BoardGroup(RenderUpdates):
 
     def remove_internal(self, sprite):
         super().remove_internal(sprite)
-        pos = self._calc_pos(sprite.Center)
-        self.Screen.fill((0, 0, 0), sprite.rect)
-        self.model.remove_stone(pos["cell_pos"])
+        if isinstance(sprite, Stone):
+            pos = self._calc_pos(sprite.Center)
+            self.Screen.fill((0, 0, 0), sprite.rect)
+            self.model.remove_stone(pos["cell_pos"])
 
     def process_event(self, event):
-
         self.rect_list = []
         self.event_processor[event.type](event)
-
-
         pygame.display.update(self.rect_list)

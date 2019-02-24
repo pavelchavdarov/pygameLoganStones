@@ -6,12 +6,16 @@ import pygame
 from Settings import CELL_RADIUS
 from Events.event_dict import STONE_SELECTED_EVENT
 from Events.event_dict import CHANGE_TURN_EVENT
-from Events.utils import post_event
+from Events.event_dict import FOCUS_OFF_EVENT
+from Events.event_dict import FOCUS_ON_EVENT
+from Events.utils import post_event, create_event
+from Groups.GameArea import GameArea
 
-class PlayerGroup(RenderUpdates):
+
+class Player(GameArea):
 
     def __init__(self, area: Rect, index):
-        super().__init__()
+        super().__init__(area)
         self.area = area
         self.direction = 1-2*index
         self.center = area.center
@@ -26,30 +30,22 @@ class PlayerGroup(RenderUpdates):
         self.event_processor.update({
             pygame.MOUSEBUTTONUP: lambda event: self._on_mouse_up(event.pos),
             pygame.MOUSEBUTTONDOWN: lambda event: self._on_mouse_down(event.pos),
-            pygame.MOUSEMOTION: lambda event: self._on_mouse_move(event.rel)
-            CHANGE_TURN_EVENT: lambda event: self.turn_over()
+            pygame.MOUSEMOTION: lambda event: self._on_mouse_move(event.rel),
+            FOCUS_ON_EVENT: lambda event: self._on_focus_on(),
+            FOCUS_OFF_EVENT: lambda event: self._on_focus_off()
 
         })
+
     def collide_pos(self, pos):
-        clicked_sprites = list(filter(lambda sprite: sprite.is_over(pos), self.sprites()))
+        clicked_sprites = list(filter(lambda sprite: sprite.is_over(pos), self.sprites_list))
         return clicked_sprites[0] if clicked_sprites else None
 
-    def is_clicked(self, pos):
+    def is_hover(self, pos):
         return self.area.collidepoint(pos[0], pos[1])
 
     def process_event(self, event):
-        # print('{}: process_event'.format(self.__class__.__name__))
         self.rect_list = []
         self.event_processor[event.type](event)
-
-
-
-        # if event.type == pygame.MOUSEBUTTONUP:
-        #     self._on_mouse_up(event.pos)
-        # elif event.type == pygame.MOUSEBUTTONDOWN:
-        #     self._on_mouse_down(event.pos)
-        # elif event.type == pygame.MOUSEMOTION:
-        #     self._on_mouse_move(event.rel)
 
         pygame.display.update(self.rect_list)
 
@@ -107,4 +103,53 @@ class PlayerGroup(RenderUpdates):
         # if self.drag:
         #     self.drag = False
 
-    def turn_over(self):
+    def _on_turn_over(self):
+        self._hide_border()
+
+    def _on_focus_off(self):
+        self._hide_border()
+        self.update()
+        self.rect_list = self.draw(self.Screen)
+
+    def _on_focus_on(self):
+        self._show_border()
+        self.update()
+        self.rect_list = self.draw(self.Screen)
+
+
+class PlayerDispatcher:
+    def __init__(self, *players):
+        self.__players = players
+        self.__players_amount = len(players)
+        if self.__players_amount < 2:
+            raise Exception('It must be 2 or more players!')
+
+        self.__cur_player_idx = 0
+
+        self.event_processor = defaultdict(lambda: lambda event: print("Unsupported event {}".format(event)))
+        self.event_processor.update({
+            # pygame.MOUSEBUTTONUP: lambda event: self._on_mouse_up(event.pos),
+            # pygame.MOUSEBUTTONDOWN: lambda event: self._on_mouse_down(event.pos),
+            # pygame.MOUSEMOTION: lambda event: self._on_mouse_move(event.rel),
+            CHANGE_TURN_EVENT: lambda event: self._on_change_turn(),
+            # FOCUS_OFF_EVENT: lambda event: self._on_focus_off(),
+            # FOCUS_ON_EVENT: lambda event: self._on_focus_on()
+
+        })
+
+    @property
+    def current_player(self):
+        return self.__players[self.__cur_player_idx]
+
+    def pass_turn(self):
+        # self.__players[self.__cur_player_idx].my_turn = False
+        self.__cur_player_idx = (self.__cur_player_idx + 1) % self.__players_amount
+        # self.__players[self.__cur_player_idx].my_turn = True
+
+    def process_event(self, event):
+        self.event_processor[event.type](event)
+
+    def _on_change_turn(self):
+        self.current_player.process_event(create_event(FOCUS_OFF_EVENT))
+        self.pass_turn()
+        self.current_player.process_event(create_event(FOCUS_ON_EVENT))

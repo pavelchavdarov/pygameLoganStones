@@ -10,11 +10,12 @@ import os
 
 from Stone.StoneModel import StoneModel
 
-_STONE_COLOR = {"rock":      'hexagon-red.png', #(194, 159, 117),
-                "scissors":  'hexagon-blue.png',#(22, 46, 175),
-                "papper":    'hexagon-green.png',#(255, 142, 0)
-                "avatar":    'hexagon-grey.png'
+_STONE_COLOR = {"rock":      'hexagon-red.png',   # (194, 159, 117),
+                "scissors":  'hexagon-blue.png',  # (22, 46, 175),
+                "papper":    'hexagon-green.png'  # ,#(255, 142, 0)
+                # "avatar":    'hexagon-grey.png'
                 }
+_STONE_AVATAR = 'hexagon-grey.png'
 pi2 = pi * 2
 
 
@@ -53,7 +54,7 @@ class StoneViewGenerator:
                 self.__sides_dict[side].set_colorkey((0, 0, 0))
                 # draw.aalines(self.__sides_dict[side], _STONE_COLOR[side], True, lines)
                 # draw.polygon(self.__sides_dict[side], _STONE_COLOR[side], lines)
-                self.__sides_dict[side].blit(image_loader.load(os.path.join('resources', _STONE_COLOR[side])), [0,0])
+                self.__sides_dict[side].blit(image_loader.load(os.path.join('resources', _STONE_COLOR[side])), [0, 0])
 
         def get_entity(self, side_name):
             return self.__sides_dict.get(side_name, None)

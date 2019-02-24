@@ -12,21 +12,13 @@ from .Interface import MoveProvider
 from .StoneModel import StoneModel
 from Settings import CELL_RADIUS
 
+
 # pi2 = 2 * pi
-
-
-class StoneMoveProvider(MoveProvider):
-    def move_to(self, stone, position):
-        stone.rect = Rect((round(position[0] - stone.Radius), round(position[1] - stone.radius)),
-                          (stone.image.get_width(), stone.image.get_height()))
-        stone.Center = position
-
 
 class StoneBuilder:
     def __init__(self):
         self.radius = self.position = self.group = self.stone_model = \
-        self.move_provider = None
-
+            self.move_provider = None
 
     def set_position(self, position):
         self.position = position
@@ -45,28 +37,51 @@ class StoneBuilder:
         return self
 
     def build(self):
-        return Stone(self.position, self.group, self.stone_model, self.move_provider)
+        stone = Stone()
+
+        if self.position:
+            stone.Center = self.position
+            stone.rect = Rect((round(stone.Center[0] - stone.Radius), round(stone.Center[1] - stone.radius)),
+                              (round(stone.Radius * 2), round(stone.radius * 2)))
+
+        if self.group is not None:
+            self.group.add(stone)
+
+        if self.stone_model:
+            stone_view = StoneViewGenerator.get_simple_generator(stone.radius - 1)
+            stone.stone_model = self.stone_model
+            stone.image_sides = stone_view.get_views(stone.stone_model)
+            stone.image = stone.image_sides[stone.stone_model.side]
+
+        if self.move_provider:
+            stone.move_provider = self.move_provider
+
+        return stone
 
 
 class Stone(Sprite):
-    def __init__(self, position: tuple, group: pygame.sprite.Group ,
-                 stone_model: StoneModel, move_provider: MoveProvider):
-
+    def __init__(self):
         super().__init__()
 
-        self.Center = position
-        group.add(self)
+        # self.Center = position
+        # group.add(self)
+        self.position = None
+        self.stone_model = None
+        self.image_sides = None
+        self.Center = None
+        self.image = None
+        self.rect = None
 
         self.radius = CELL_RADIUS
         self.Radius = self.radius / cos(pi / 6)
-        self.stone_model = stone_model
+        # self.stone_model = stone_model
 
-        stone_view = StoneViewGenerator.get_simple_generator(self.radius-1)
-        self.image_sides = stone_view.get_views(self.stone_model)
-        self.image = self.image_sides[self.stone_model.side]
-        self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
-                         (self.image.get_width(), self.image.get_height()))
-        self.move_provider = move_provider
+        # stone_view = StoneViewGenerator.get_simple_generator(self.radius-1)
+        # self.image_sides = stone_view.get_views(self.stone_model)
+        # self.image = self.image_sides[self.stone_model.side]
+        # self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
+        #                  (self.image.get_width(), self.image.get_height()))
+        # self.move_provider = move_provider
 
     def update(self, *args):
         self.image = self.image_sides[self.stone_model.side]
@@ -80,12 +95,12 @@ class Stone(Sprite):
         return round(vec_pos.distance_to(vec_centr)) < self.radius
 
     def move_to(self, position):
-        if self.move_provider:
-            self.move_provider.move_to(self, position)
+        self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
+                         (self.image.get_width(), self.image.get_height()))
+        self.Center = position
 
     def get_rect(self):
         return self.rect
-
 
 
 class Avatar(Sprite):
@@ -99,8 +114,6 @@ class Avatar(Sprite):
         self.radius = CELL_RADIUS
         self.Radius = self.radius / cos(pi / 6)
 
-
-
     def set_image(self, image):
         self.image = image
         return self
@@ -110,7 +123,7 @@ class Avatar(Sprite):
         return self
 
     def set_rect(self, pos):
-        self.rect = Rect((pos[0],pos[1]), (self.image.get_width(), self.image.get_height()))
+        self.rect = Rect((pos[0], pos[1]), (self.image.get_width(), self.image.get_height()))
         return self
 
     def set_move_provider(self, move_provider):
@@ -118,8 +131,12 @@ class Avatar(Sprite):
         return self
 
     def move_to(self, position):
-        if self.move_provider:
-            self.move_provider.move_to(self, position)
+        # if self.move_provider:
+        #     self.move_provider.move_to(self, position)
+        # return self
+        self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
+                         (self.image.get_width(), self.image.get_height()))
+        self.Center = position
         return self
 
     def set_group(self, group):
