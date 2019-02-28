@@ -2,19 +2,21 @@ import os
 from _collections import defaultdict
 
 import pygame
-from pygame.sprite import RenderUpdates
 from pygame import Rect
+from pygame.math import Vector2
+from pygame import Surface
 from math import cos, sin, pi
 from Model import Model
 
 from Events.event_dict import CHANGE_TURN_EVENT
 from Events.event_dict import STONE_SELECTED_EVENT
 from Events.event_dict import FOCUS_OFF_EVENT, FOCUS_ON_EVENT
+from Events.event_dict import MOUSE_EVENTS
 from Events.utils import post_event
 
 from Stone.Stone import Stone, Avatar
 from resources import _STONE_AVATAR
-from Settings import CELL_RADIUS
+from Settings import *
 from Groups.GameArea import GameArea
 
 from pygame import image as image_loader
@@ -25,20 +27,23 @@ sin_pi_6 = sin(pi / 6)
 
 class GameBoard(GameArea):
 
-    def __init__(self, area: Rect):
+    def __init__(self, screen: Surface, area: Rect):
         super().__init__(area)
         self.area = area
-        self.center = area.center
+        self.center = Vector2(area.center)
         self.cell_radius = CELL_RADIUS
         self.model = Model()
-        self.Screen = pygame.display.get_surface()
+        self.Screen = screen  # pygame.display.get_surface()
         self.drag = False  # признак события перетаскивания (Drag-and-Drop)
         self.drag_pos = None  # позиция начала перетаскивания
         self.drag_stone = None
         self.rect_list = []
         image = image_loader.load(os.path.join('resources', _STONE_AVATAR))
-        self.avatar_sprite = Avatar().set_image(image).set_rect(pos=(0, 0))
+        self.avatar_sprite = Avatar().set_image(image)  # .set_rect(pos=(0, 0))
         self.stone_selected = False
+
+        self.scroll_x = WINDOW_WIDTH/2
+        self.scroll_y = WINDOW_HIGHT/2
 
         self.event_processor = defaultdict(lambda: lambda event: print("Unsupported event {}".format(event)))
         self.event_processor.update({
@@ -49,6 +54,15 @@ class GameBoard(GameArea):
             FOCUS_OFF_EVENT: lambda event: self._on_focus_off(),
             FOCUS_ON_EVENT: lambda event: self._on_focus_on()
         })
+
+    def draw(self, surface):
+        rect_list = super().draw(surface)
+        pygame.display.get_surface().blit(self.Screen,
+                                          # (2*BORDER_WIDTH + PLAYER_WIDTH, BORDER_WIDTH),
+                                          (self.area.left, self.area.top),
+                                          Rect(self.scroll_x, self.scroll_y, BOARD_WIDTH, BOARD_HIGHT))
+        rect_list.append(Rect(self.scroll_x, self.scroll_y, BOARD_WIDTH, BOARD_HIGHT))
+        return rect_list
 
     def _calc_pos(self, mouse_pos):
         # расстояние до точки клика по hex-осям X и Y
@@ -63,7 +77,8 @@ class GameBoard(GameArea):
         # запишем в модель
 
         # координаты для отрисовки в обычных координатах
-        return {"draw_pos": (self.center[0] + cell_x * cos_pi_6, self.center[1] + cell_y - cell_x * sin_pi_6),
+        return {"draw_pos": (self.center[0] + cell_x * cos_pi_6 + self.scroll_x,
+                             self.center[1] + cell_y - cell_x * sin_pi_6 + self.scroll_y),
                 "cell_pos": (hex_x, hex_y)}
 
     def _move_stone_to_pos(self, stone, pos):
@@ -142,8 +157,8 @@ class GameBoard(GameArea):
         # self.Screen.fill((0, 0, 0), self.avatar_sprite.rect)
         # self.rect_list = self.draw(self.Screen)
 
-    def is_over(self, pos):
-        return self.area.collidepoint(pos[0], pos[1])
+    # def is_over(self, pos):
+    #     return self.area.collidepoint(pos[0], pos[1])
 
     def collide_pos(self, mouse_pos):
         pos = self._calc_pos(mouse_pos)
@@ -160,6 +175,10 @@ class GameBoard(GameArea):
         super().add_internal(sprite)
         if isinstance(sprite, Stone):
             pos = self._calc_pos(sprite.Center)
+            sprite_rect = sprite.get_rect()
+            sprite_rect.top = pos["draw_pos"][1]
+            sprite_rect.left = pos["draw_pos"][0]
+            sprite.rect = sprite_rect
             self.model.put_stone(pos["cell_pos"], sprite)
 
     def remove_internal(self, sprite):
@@ -171,5 +190,7 @@ class GameBoard(GameArea):
 
     def process_event(self, event):
         self.rect_list = []
+        if event.type in MOUSE_EVENTS:
+            event.pos = (event.pos[0] - (2*BORDER_WIDTH + PLAYER_WIDTH), event.pos[1] - BORDER_WIDTH)
         self.event_processor[event.type](event)
         pygame.display.update(self.rect_list)

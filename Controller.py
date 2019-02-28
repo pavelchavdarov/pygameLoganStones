@@ -2,6 +2,7 @@ from _collections import defaultdict
 
 import pygame
 from pygame import Rect
+from pygame import Surface
 from math import *
 from Model import Model
 from Stone.Stone import StoneBuilder
@@ -37,7 +38,15 @@ class Controller:
         self.Screen = pygame.display.set_mode([WINDOW_WIDTH, WINDOW_HIGHT])
         pygame.display.set_caption('Logan stones game')
 
-        self.board = GameBoard(Rect(2*BORDER_WIDTH + PLAYER_WIDTH, BORDER_WIDTH, BOARD_WIDTH, BOARD_HIGHT))
+        board_image = Surface((2*WINDOW_WIDTH, 2*WINDOW_HIGHT))
+        board_image.fill((0, 0, 0))
+
+        self.board = GameBoard(board_image, Rect(2*BORDER_WIDTH + PLAYER_WIDTH, BORDER_WIDTH, BOARD_WIDTH, BOARD_HIGHT))
+        # self.Screen.blit(board_image,
+        #                  (2*BORDER_WIDTH + PLAYER_WIDTH, BORDER_WIDTH),
+        #                  Rect(WINDOW_WIDTH/2, WINDOW_HIGHT/2, BOARD_WIDTH, BOARD_HIGHT))
+
+
         self.centr = self.board.area.center
         self.turn_dispatcher = PlayerDispatcher(Player(Rect(BORDER_WIDTH, BORDER_WIDTH,
                                                             PLAYER_WIDTH, PLAYER_HIGHT), 0),
@@ -94,7 +103,7 @@ class Controller:
             self.pouch.shake()
             if self.pouch.get_value() > 1:
                 current_player = self.turn_dispatcher.current_player
-                self._put_stone({"draw_pos":(x[i], y)}, stone, current_player)
+                self._put_stone({"draw_pos": (x[i], y)}, stone, current_player)
                 # print("x={} y={} stone = {}".format(x[i], y, stone))
                 if i:
                     y += 100
@@ -105,7 +114,7 @@ class Controller:
                 game_board = self.board
                 self._put_stone(self._calc_pos((self.centr[0], self.centr[1] +
                                                 self.pouch.get_value()*2*CELL_RADIUS)), stone, game_board)
-                rect_list.extend(game_board.draw(self.Screen))
+                rect_list.extend(game_board.draw(self.board.Screen))
         pygame.display.update(rect_list)
 
         # focus_dict = defaultdict(lambda: False)
@@ -116,14 +125,13 @@ class Controller:
                 if event.type == pygame.QUIT:
                     self.done = True
                 elif event.type in MOUSE_EVENTS:
-                    if self.board.is_over(event.pos):
+                    if self.board.is_hover(event.pos):
                         # if focus_dict[self.turn_dispatcher.current_player]:
                         post_event(FOCUS_ON_EVENT, {"recipient": self.board})
                         # post_event(FOCUS_OFF_EVENT, {"recipient": self.turn_dispatcher.current_player})
                         # focus_dict.update({self.board: True, self.turn_dispatcher.current_player: False})
                         self.board.process_event(event)
-                    # elif self.turn_dispatcher.current_player.is_over(event.pos):
-                    else:
+                    elif self.turn_dispatcher.current_player.is_hover(event.pos):
                         # if focus_dict[self.board]:
                         post_event(FOCUS_OFF_EVENT, {"recipient": self.board})
                         # post_event(FOCUS_ON_EVENT, {"recipient": self.turn_dispatcher.current_player})

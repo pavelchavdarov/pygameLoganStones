@@ -40,8 +40,8 @@ class Player(GameArea):
         clicked_sprites = list(filter(lambda sprite: sprite.is_over(pos), self.sprites_list))
         return clicked_sprites[0] if clicked_sprites else None
 
-    def is_hover(self, pos):
-        return self.area.collidepoint(pos[0], pos[1])
+    # def is_hover(self, pos):
+    #     return self.area.collidepoint(pos[0], pos[1])
 
     def process_event(self, event):
         self.rect_list = []
@@ -131,7 +131,7 @@ class PlayerDispatcher:
             # pygame.MOUSEBUTTONUP: lambda event: self._on_mouse_up(event.pos),
             # pygame.MOUSEBUTTONDOWN: lambda event: self._on_mouse_down(event.pos),
             # pygame.MOUSEMOTION: lambda event: self._on_mouse_move(event.rel),
-            CHANGE_TURN_EVENT: lambda event: self._on_change_turn(),
+            CHANGE_TURN_EVENT: lambda event: self.pass_turn(),
             # FOCUS_OFF_EVENT: lambda event: self._on_focus_off(),
             # FOCUS_ON_EVENT: lambda event: self._on_focus_on()
 
@@ -142,9 +142,9 @@ class PlayerDispatcher:
         return self.__players[self.__cur_player_idx]
 
     def pass_turn(self):
-        # self.__players[self.__cur_player_idx].my_turn = False
+        self.current_player.process_event(create_event(FOCUS_OFF_EVENT))
         self.__cur_player_idx = (self.__cur_player_idx + 1) % self.__players_amount
-        # self.__players[self.__cur_player_idx].my_turn = True
+        self.current_player.process_event(create_event(FOCUS_ON_EVENT))
 
     def process_event(self, event):
         self.event_processor[event.type](event)

@@ -40,8 +40,10 @@ class StoneBuilder:
         stone = Stone()
 
         if self.position:
-            stone.Center = self.position
-            stone.rect = Rect((round(stone.Center[0] - stone.Radius), round(stone.Center[1] - stone.radius)),
+            stone.Center = Vector2(self.position)
+            # stone.rect = Rect((round(stone.Center[0] - stone.Radius), round(stone.Center[1] - stone.radius)),
+            #                   (round(stone.Radius * 2), round(stone.radius * 2)))
+            stone.rect = Rect(stone.Center - Vector2(stone.Radius, stone.radius),
                               (round(stone.Radius * 2), round(stone.radius * 2)))
 
         if self.group is not None:
@@ -74,6 +76,7 @@ class Stone(Sprite):
 
         self.radius = CELL_RADIUS
         self.Radius = self.radius / cos(pi / 6)
+        self.radius_vector = Vector2(self.Radius, self.radius)
         # self.stone_model = stone_model
 
         # stone_view = StoneViewGenerator.get_simple_generator(self.radius-1)
@@ -94,48 +97,50 @@ class Stone(Sprite):
         vec_pos = Vector2(pos)
         return round(vec_pos.distance_to(vec_centr)) < self.radius
 
-    def move_to(self, position):
-        self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
+    def move_to(self, position: Vector2):
+        # self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
+        #                  (self.image.get_width(), self.image.get_height()))
+        self.rect = Rect(position - self.radius_vector,
                          (self.image.get_width(), self.image.get_height()))
+
         self.Center = position
 
     def get_rect(self):
         return self.rect
 
 
+# class Avatar(Sprite):
 class Avatar(Sprite):
     def __init__(self):
         super().__init__()
         self.image = None
         self.Center = None
         self.rect = None
-        self.move_provider = None
-
         self.radius = CELL_RADIUS
         self.Radius = self.radius / cos(pi / 6)
+        self.radius_vector = Vector2(self.Radius, self.radius)
 
     def set_image(self, image):
         self.image = image
         return self
 
-    def set_centr(self, pos):
-        self.Center = pos
-        return self
+    # def set_centr(self, pos):
+    #     self.Center = pos
+    #     return self
 
     def set_rect(self, pos):
         self.rect = Rect((pos[0], pos[1]), (self.image.get_width(), self.image.get_height()))
         return self
 
-    def set_move_provider(self, move_provider):
-        self.move_provider = move_provider
-        return self
-
-    def move_to(self, position):
+    def move_to(self, position: Vector2):
         # if self.move_provider:
         #     self.move_provider.move_to(self, position)
         # return self
-        self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
+        # self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
+        #                  (self.image.get_width(), self.image.get_height()))
+        self.rect = Rect(position - self.radius_vector,
                          (self.image.get_width(), self.image.get_height()))
+
         self.Center = position
         return self
 
