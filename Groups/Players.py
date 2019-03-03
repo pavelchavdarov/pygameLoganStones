@@ -26,6 +26,8 @@ class Player(GameArea):
         self.selected_stone = None
         self.rect_list = []
 
+        self.add(self.border_image)
+
         self.event_processor = defaultdict(lambda: lambda event: print("Unsupported event {}".format(event)))
         self.event_processor.update({
             pygame.MOUSEBUTTONUP: lambda event: self._on_mouse_up(event.pos),

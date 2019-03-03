@@ -28,19 +28,21 @@ class GameArea(RenderUpdates):
     def __init__(self, area: Rect):
         super().__init__()
         self.border_image = GameBorder(area)
-        self.add(self.border_image)
         self.area = area
 
     def _show_border(self):
         self.border_image.show()
+        pass
 
 
     def _hide_border(self):
         self.border_image.hide()
+        pass
 
     @property
     def sprites_list(self):
         return [sprite for sprite in self.sprites() if sprite != self.border_image]
+        # return self.sprites()
 
     def is_hover(self, pos):
         return self.area.collidepoint(pos[0], pos[1])

@@ -41,11 +41,12 @@ class Controller:
         board_image = Surface((2*WINDOW_WIDTH, 2*WINDOW_HIGHT))
         board_image.fill((0, 0, 0))
 
+
         self.board = GameBoard(board_image, Rect(2*BORDER_WIDTH + PLAYER_WIDTH, BORDER_WIDTH, BOARD_WIDTH, BOARD_HIGHT))
         # self.Screen.blit(board_image,
         #                  (2*BORDER_WIDTH + PLAYER_WIDTH, BORDER_WIDTH),
         #                  Rect(WINDOW_WIDTH/2, WINDOW_HIGHT/2, BOARD_WIDTH, BOARD_HIGHT))
-
+        board_image.scroll(self.board.scroll_x, self.board.scroll_y)
 
         self.centr = self.board.area.center
         self.turn_dispatcher = PlayerDispatcher(Player(Rect(BORDER_WIDTH, BORDER_WIDTH,
@@ -112,8 +113,10 @@ class Controller:
                 self.turn_dispatcher.pass_turn()
             else:
                 game_board = self.board
-                self._put_stone(self._calc_pos((self.centr[0], self.centr[1] +
-                                                self.pouch.get_value()*2*CELL_RADIUS)), stone, game_board)
+                # self._put_stone(self._calc_pos((self.centr[0], self.centr[1] +
+                #                                 self.pouch.get_value()*2*CELL_RADIUS)), stone, game_board)
+                self._put_stone({"draw_pos": (self.centr[0], self.centr[1] + self.pouch.get_value()*2*CELL_RADIUS)},
+                                stone, game_board)
                 rect_list.extend(game_board.draw(self.board.Screen))
         pygame.display.update(rect_list)
 

@@ -40,11 +40,11 @@ class StoneBuilder:
         stone = Stone()
 
         if self.position:
-            stone.Center = Vector2(self.position)
+            # stone.Center = Vector2(self.position)
             # stone.rect = Rect((round(stone.Center[0] - stone.Radius), round(stone.Center[1] - stone.radius)),
             #                   (round(stone.Radius * 2), round(stone.radius * 2)))
-            stone.rect = Rect(stone.Center - Vector2(stone.Radius, stone.radius),
-                              (round(stone.Radius * 2), round(stone.radius * 2)))
+            stone.rect = Rect(self.position - Vector2(stone.Radius, stone.radius),
+                              (stone.Radius * 2, stone.radius * 2))
 
         if self.group is not None:
             self.group.add(stone)
@@ -70,7 +70,7 @@ class Stone(Sprite):
         self.position = None
         self.stone_model = None
         self.image_sides = None
-        self.Center = None
+        # self.Center = None
         self.image = None
         self.rect = None
 
@@ -85,6 +85,9 @@ class Stone(Sprite):
         # self.rect = Rect((round(position[0] - self.Radius), round(position[1] - self.radius)),
         #                  (self.image.get_width(), self.image.get_height()))
         # self.move_provider = move_provider
+    @property
+    def Center(self):
+        return self.rect.center
 
     def update(self, *args):
         self.image = self.image_sides[self.stone_model.side]
@@ -103,7 +106,7 @@ class Stone(Sprite):
         self.rect = Rect(position - self.radius_vector,
                          (self.image.get_width(), self.image.get_height()))
 
-        self.Center = position
+        # self.Center = position
 
     def get_rect(self):
         return self.rect
