@@ -4,6 +4,7 @@ import pygame
 from pygame import Rect
 from pygame import Surface
 from math import *
+from pygame.math import Vector2
 from Model import Model
 from Stone.Stone import StoneBuilder
 from resources import _STONE_COLOR
@@ -39,14 +40,7 @@ class Controller:
         pygame.display.set_caption('Logan stones game')
 
         board_image = Surface((2*WINDOW_WIDTH, 2*WINDOW_HIGHT))
-        board_image.fill((0, 0, 0))
-
-
         self.board = GameBoard(board_image, Rect(2*BORDER_WIDTH + PLAYER_WIDTH, BORDER_WIDTH, BOARD_WIDTH, BOARD_HIGHT))
-        # self.Screen.blit(board_image,
-        #                  (2*BORDER_WIDTH + PLAYER_WIDTH, BORDER_WIDTH),
-        #                  Rect(WINDOW_WIDTH/2, WINDOW_HIGHT/2, BOARD_WIDTH, BOARD_HIGHT))
-        board_image.scroll(self.board.scroll_x, self.board.scroll_y)
 
         self.centr = self.board.area.center
         self.turn_dispatcher = PlayerDispatcher(Player(Rect(BORDER_WIDTH, BORDER_WIDTH,
@@ -99,6 +93,7 @@ class Controller:
         i = 0
 
         rect_list = []
+        init_list = []
         self.pouch.shake()
         for stone in self.pouch.stones:
             self.pouch.shake()
@@ -109,15 +104,16 @@ class Controller:
                 if i:
                     y += 100
                 i = (i+1) % 2
-                rect_list.extend(current_player.draw(self.Screen))
                 self.turn_dispatcher.pass_turn()
             else:
-                game_board = self.board
-                # self._put_stone(self._calc_pos((self.centr[0], self.centr[1] +
-                #                                 self.pouch.get_value()*2*CELL_RADIUS)), stone, game_board)
-                self._put_stone({"draw_pos": (self.centr[0], self.centr[1] + self.pouch.get_value()*2*CELL_RADIUS)},
-                                stone, game_board)
-                rect_list.extend(game_board.draw(self.board.Screen))
+                init_list.append(self.stone_builder.set_stone_model(stone).build())
+        rect_list.extend(self.turn_dispatcher.current_player.draw(self.Screen))
+        self.turn_dispatcher.pass_turn()
+        rect_list.extend(self.turn_dispatcher.current_player.draw(self.Screen))
+        self.turn_dispatcher.pass_turn()
+
+        self.board.init_board(*init_list)
+        rect_list.extend(self.board.draw(self.board.Screen))
         pygame.display.update(rect_list)
 
         # focus_dict = defaultdict(lambda: False)
@@ -129,24 +125,20 @@ class Controller:
                     self.done = True
                 elif event.type in MOUSE_EVENTS:
                     if self.board.is_hover(event.pos):
-                        # if focus_dict[self.turn_dispatcher.current_player]:
-                        post_event(FOCUS_ON_EVENT, {"recipient": self.board})
-                        # post_event(FOCUS_OFF_EVENT, {"recipient": self.turn_dispatcher.current_player})
-                        # focus_dict.update({self.board: True, self.turn_dispatcher.current_player: False})
+                        # post_event(FOCUS_ON_EVENT, {"recipient": self.board})
                         self.board.process_event(event)
                     elif self.turn_dispatcher.current_player.is_hover(event.pos):
-                        # if focus_dict[self.board]:
-                        post_event(FOCUS_OFF_EVENT, {"recipient": self.board})
-                        # post_event(FOCUS_ON_EVENT, {"recipient": self.turn_dispatcher.current_player})
-                        # focus_dict.update({self.board: False, self.turn_dispatcher.current_player: True})
+                        # post_event(FOCUS_OFF_EVENT, {"recipient": self.board})
                         self.turn_dispatcher.current_player.process_event(event)
                 elif event.type == CHANGE_TURN_EVENT:
                     self.turn_dispatcher.process_event(event)
-                elif event.type == STONE_SELECTED_EVENT:
+                elif event.type in (STONE_SELECTED_EVENT, pygame.KEYDOWN, pygame.KEYUP):
                     self.board.process_event(event)
                 elif event.type in (FOCUS_OFF_EVENT, FOCUS_ON_EVENT):
                     event.recipient.process_event(event)
 
+            self.board.scroll_board()
+            pygame.display.update()
                 #elif event.type == pygame.MOUSEBUTTONUP:
                 #    rect_list = self._on_mouse_up(event.pos)
                 #elif event.type == pygame.MOUSEBUTTONDOWN:

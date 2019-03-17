@@ -17,8 +17,12 @@ from Settings import CELL_RADIUS
 
 class StoneBuilder:
     def __init__(self):
+        self._init()
+
+    def _init(self):
         self.radius = self.position = self.group = self.stone_model = \
             self.move_provider = None
+        self.position = (0, 0)
 
     def set_position(self, position):
         self.position = position
@@ -57,6 +61,9 @@ class StoneBuilder:
 
         if self.move_provider:
             stone.move_provider = self.move_provider
+
+        # почистим переменные-параметры
+        self._init()
 
         return stone
 
