@@ -18,7 +18,6 @@ class Player(GameArea):
         super().__init__(area)
         self.area = area
         self.direction = 1-2*index
-        # self.center = area.center
         self.Screen = pygame.display.get_surface()
         self.drag = False  # признак события перетаскивания (Drag-and-Drop)
         self.drag_pos = None  # позиция начала перетаскивания
@@ -41,9 +40,6 @@ class Player(GameArea):
     def collide_pos(self, pos):
         clicked_sprites = list(filter(lambda sprite: sprite.is_over(pos), self.sprites_list))
         return clicked_sprites[0] if clicked_sprites else None
-
-    # def is_hover(self, pos):
-    #     return self.area.collidepoint(pos[0], pos[1])
 
     def process_event(self, event):
         self.rect_list = []
@@ -71,11 +67,6 @@ class Player(GameArea):
                     rect = stone.rect
                     self._move_stone_to_pos(self.selected_stone, (rect.centerx + CELL_RADIUS*self.direction,
                                                                   rect.centery))
-                # начинаем перетаскиваниекамня
-                # if not self.drag:
-                #     self.drag_pos = stone.Center  # self._calc_pos(pygame.mouse.get_pos())
-                #     self.drag = True
-                #     self.drag_stone = stone
             elif buttons[2]:
                 self.Screen.fill((0, 0, 0), stone.rect)
                 stone.flip()
@@ -88,17 +79,11 @@ class Player(GameArea):
             self.selected_stone = None
 
         post_event(STONE_SELECTED_EVENT, {'selected_stone': self.selected_stone})
-        # event = pygame.event.Event(STONE_SELECTED_EVENT, {'selected': self.selected_stone is not None})
-        # pygame.event.post(event)
         self.update()
         self.rect_list = self.draw(self.Screen)
 
     def _on_mouse_move(self, rel_pos):
         pass
-        # if self.drag:
-        #     pos = Vector2(self.drag_stone.Center) + Vector2(rel_pos)
-        #     self._move_stone_to_pos(self.drag_stone, (pos.x,pos.y))
-        #     return self.draw(self.Screen)
 
     def _on_mouse_up(self, mouse_pos):
         pass
@@ -135,13 +120,7 @@ class PlayerDispatcher:
 
         self.event_processor = defaultdict(lambda: lambda event: print("Unsupported event {}".format(event)))
         self.event_processor.update({
-            # pygame.MOUSEBUTTONUP: lambda event: self._on_mouse_up(event.pos),
-            # pygame.MOUSEBUTTONDOWN: lambda event: self._on_mouse_down(event.pos),
-            # pygame.MOUSEMOTION: lambda event: self._on_mouse_move(event.rel),
             CHANGE_TURN_EVENT: lambda event: self.pass_turn(),
-            # FOCUS_OFF_EVENT: lambda event: self._on_focus_off(),
-            # FOCUS_ON_EVENT: lambda event: self._on_focus_on()
-
         })
 
     @property

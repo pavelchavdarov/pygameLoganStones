@@ -76,9 +76,7 @@ class Controller:
     def _put_stone(self, pos, stone_model, group):
         # stone_model = self.pouch.get_stone()
         if stone_model:
-            # model.put_stone(pos["cell_pos"], Stone(self.cell_radius, pos["draw_pos"], group, stone_model))
             self.stone_builder.set_position(pos["draw_pos"]).set_group(group).set_stone_model(stone_model).build()
-            #Stone(self.cell_radius, pos["draw_pos"], group, stone_model)
 
     # deprecated
     def _move_stone_to_pos(self, stone, pos):
@@ -100,9 +98,7 @@ class Controller:
             if self.pouch.get_value() > 1:
                 current_player = self.turn_dispatcher.current_player
                 self._put_stone({"draw_pos": (x[i], y)}, stone, current_player)
-                # print("x={} y={} stone = {}".format(x[i], y, stone))
-                if i:
-                    y += 100
+                y += 100 * i
                 i = (i+1) % 2
                 self.turn_dispatcher.pass_turn()
             else:
@@ -116,7 +112,6 @@ class Controller:
         rect_list.extend(self.board.draw(self.board.Screen))
         pygame.display.update(rect_list)
 
-        # focus_dict = defaultdict(lambda: False)
         while not self.done:
             for event in pygame.event.get():
                 if rect_list:
@@ -125,10 +120,8 @@ class Controller:
                     self.done = True
                 elif event.type in MOUSE_EVENTS:
                     if self.board.is_hover(event.pos):
-                        # post_event(FOCUS_ON_EVENT, {"recipient": self.board})
                         self.board.process_event(event)
                     elif self.turn_dispatcher.current_player.is_hover(event.pos):
-                        # post_event(FOCUS_OFF_EVENT, {"recipient": self.board})
                         self.turn_dispatcher.current_player.process_event(event)
                 elif event.type == CHANGE_TURN_EVENT:
                     self.turn_dispatcher.process_event(event)
@@ -139,13 +132,6 @@ class Controller:
 
             self.board.scroll_board()
             pygame.display.update()
-                #elif event.type == pygame.MOUSEBUTTONUP:
-                #    rect_list = self._on_mouse_up(event.pos)
-                #elif event.type == pygame.MOUSEBUTTONDOWN:
-                #    rect_list = self._on_mouse_down(event.pos)
-                #elif event.type == pygame.MOUSEMOTION:
-                #    rect_list = self._on_mouse_move(event.pos)
-                # pygame.display.update(rect_list)
 
         pygame.quit()
         sys.exit()
