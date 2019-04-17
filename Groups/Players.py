@@ -18,7 +18,7 @@ class Player(GameArea):
         super().__init__(area)
         self.area = area
         self.direction = 1-2*index
-        self.center = area.center
+        # self.center = area.center
         self.Screen = pygame.display.get_surface()
         self.drag = False  # признак события перетаскивания (Drag-and-Drop)
         self.drag_pos = None  # позиция начала перетаскивания
@@ -87,7 +87,7 @@ class Player(GameArea):
                                                               rect.centery))
             self.selected_stone = None
 
-        post_event(STONE_SELECTED_EVENT, {'selected': self.selected_stone is not None})
+        post_event(STONE_SELECTED_EVENT, {'selected_stone': self.selected_stone})
         # event = pygame.event.Event(STONE_SELECTED_EVENT, {'selected': self.selected_stone is not None})
         # pygame.event.post(event)
         self.update()
@@ -117,6 +117,11 @@ class Player(GameArea):
         self._show_border()
         self.update()
         self.rect_list = self.draw(self.Screen)
+
+    def remove_internal(self, stone):
+        self.Screen.fill((0, 0, 0), stone.rect)
+        super().remove_internal(stone)
+        self.selected_stone = None
 
 
 class PlayerDispatcher:
@@ -149,7 +154,9 @@ class PlayerDispatcher:
         self.current_player.process_event(create_event(FOCUS_ON_EVENT))
 
     def process_event(self, event):
+        pygame.display.update([self.current_player.area])
         self.event_processor[event.type](event)
+
 
     def _on_change_turn(self):
         self.current_player.process_event(create_event(FOCUS_OFF_EVENT))

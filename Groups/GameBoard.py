@@ -49,12 +49,12 @@ class GameBoard(GameArea):
         self.rect_list = []
         image = image_loader.load(os.path.join('resources', _STONE_AVATAR))
         self.avatar_sprite = Avatar().set_image(image)  # .set_rect(pos=(0, 0))
-        self.stone_selected = False
+        self.stone_selected = None
 
         # self.scroll_x = int(WINDOW_WIDTH/2)
         # self.scroll_y = int(WINDOW_HIGHT/2)
         self.scroll_vector = self.screen_center - Vector2(area.size)/2
-        self.add(self.border_image)
+        # self.add(self.border_image)
 
         self.scroll_speed_vector = Vector2(0, 0)
         self.key_vect_dict = {
@@ -69,7 +69,7 @@ class GameBoard(GameArea):
             pygame.MOUSEBUTTONUP: lambda event: self._on_mouse_up(event.pos),
             pygame.MOUSEBUTTONDOWN: lambda event: self._on_mouse_down(event.pos),
             pygame.MOUSEMOTION: lambda event: self._on_mouse_move(event.pos),
-            STONE_SELECTED_EVENT: lambda event: self._on_avatar_change(event.selected),
+            STONE_SELECTED_EVENT: lambda event: self._on_avatar_change(event.selected_stone),
             FOCUS_OFF_EVENT: lambda event: self._on_focus_off(),
             FOCUS_ON_EVENT: lambda event: self._on_focus_on(),
             pygame.KEYUP: lambda event: self._on_key_up(event.key),
@@ -131,6 +131,10 @@ class GameBoard(GameArea):
                     self.drag_pos = pos # self._calc_pos(pygame.mouse.get_pos())
                     self.drag = True
                     self.drag_stone = stone
+            elif self.stone_selected:
+                self.stone_selected.remove(self.stone_selected.groups())
+                self._put_stone(self.stone_selected, pos)
+                self.stone_selected = None
         elif buttons[2]:
             if stone:
                 stone.flip()
@@ -147,6 +151,9 @@ class GameBoard(GameArea):
             self.update()
             post_event(CHANGE_TURN_EVENT)
             self.rect_list = self.draw(self.Screen)
+        # если поставили камень bkb gthtdthyekb tuj
+        if self.model.get_stone(pos["cell_pos"]):
+            post_event(CHANGE_TURN_EVENT)
 
     def _on_mouse_move(self, mouse_pos):
         pos = self._calc_pos(mouse_pos)
@@ -176,8 +183,8 @@ class GameBoard(GameArea):
         self.update()
         self.rect_list = self.draw(self.Screen)
 
-    def _on_avatar_change(self, selected):
-        self.stone_selected = selected
+    def _on_avatar_change(self, selected_stone):
+        self.stone_selected = selected_stone
         # self.rect_list = self.draw(self.Screen)
         if self.avatar_sprite.groups():
             self.avatar_sprite.remove(self)
@@ -195,18 +202,22 @@ class GameBoard(GameArea):
         pos = self._calc_pos(mouse_pos)
         return self.model.get_stone(pos["cell_pos"])
 
-    def add(self, *sprites):
+    def _put_stone(self, stone, pos):
+        # pos = self._calc_pos(mouse_pos)
+        self._move_stone_to_pos(stone, pos)
+        self.model.put_stone(pos["cell_pos"], stone)
+        super().add(stone)
 
-        super().add(*sprites)
-        for spr in sprites:
-            if isinstance(spr, Stone):
-                # spr.rect = spr.rect.move(-self.board_vector).move(self.scroll_x, self.scroll_y)
-                spr.rect = spr.rect.move(-self.board_vector).move(self.scroll_vector)
-                pos = self._calc_pos(spr.Center)
-                self.model.put_stone(pos["cell_pos"], spr)
-            else:
-                # spr.rect = spr.rect.move(self.scroll_x, self.scroll_y).move(-self.board_vector)
-                spr.rect = spr.rect.move(-self.board_vector).move(self.scroll_vector)
+        # super().add(*sprites)
+        # for spr in sprites:
+        #     if isinstance(spr, Stone):
+        # #       spr.rect = spr.rect.move(-self.board_vector).move(self.scroll_x, self.scroll_y)
+                # spr.rect = spr.rect.move(-self.board_vector).move(self.scroll_vector)
+                # pos = self._calc_pos(spr.Center)
+                # self.model.put_stone(pos["cell_pos"], spr)
+            # else:
+            ##     spr.rect = spr.rect.move(self.scroll_x, self.scroll_y).move(-self.board_vector)
+                # spr.rect = spr.rect.move(-self.board_vector).move(self.scroll_vector)
 
     def init_board(self, *stones):
         pos = self._calc_pos(self.screen_center)
